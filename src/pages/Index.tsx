@@ -1,13 +1,15 @@
-// Update this page (the content is just a fallback if you fail to update the page)
-
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <main className="gradient-bg min-h-screen flex items-center justify-center p-6">
+      <div className="fade-in text-center max-w-2xl space-y-6">
+        <h1 className="text-5xl md:text-7xl font-light tracking-tight text-foreground">
+          Simple.
+        </h1>
+        <p className="text-xl md:text-2xl text-muted-foreground font-light">
+          Less is more
+        </p>
       </div>
-    </div>
+    </main>
   );
 };
 

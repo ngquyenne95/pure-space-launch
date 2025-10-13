@@ -64,8 +64,23 @@ const OrdersPage = () => {
     return <Badge variant={variants[status] || 'secondary'}>{status}</Badge>;
   };
 
+  const calculateLineTotal = (line: any) => {
+    if (!line.items || line.items.length === 0) return 0;
+    return line.items.reduce((sum: number, item: any) => {
+      const itemTotal = (item.quantity || 0) * (item.price || 0);
+      const customizationTotal = item.customizations?.reduce((cSum: number, c: any) => cSum + (c.price || 0), 0) || 0;
+      return sum + itemTotal + customizationTotal;
+    }, 0);
+  };
+
+  const calculateOrderTotal = (order: Order) => {
+    if (!order.orderLines || order.orderLines.length === 0) return 0;
+    return order.orderLines.reduce((sum, line) => sum + calculateLineTotal(line), 0);
+  };
+
   const renderOrderCard = (order: Order, showActions: boolean = true) => {
     const isExpanded = expandedOrders.has(order.id);
+    const orderTotal = order.total || calculateOrderTotal(order);
 
     return (
       <Card key={order.id}>
@@ -82,48 +97,52 @@ const OrdersPage = () => {
             <CollapsibleTrigger asChild>
               <Button variant="ghost" className="w-full justify-between p-2">
                 <span className="text-sm font-medium">
-                  {order.orderLines.length} orderline{order.orderLines.length !== 1 ? 's' : ''}
+                  {order.orderLines?.length || 0} orderline{order.orderLines?.length !== 1 ? 's' : ''}
                 </span>
                 <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="space-y-3 pt-2">
-                {order.orderLines?.map((line, lineIdx) => (
-                  <div key={line.id} className="space-y-2 p-3 bg-muted/50 rounded border">
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs text-muted-foreground">
-                        Line {lineIdx + 1} - {new Date(line.createdAt).toLocaleTimeString()}
-                      </div>
-                      <Badge variant="outline" className="text-xs">
-                        ${line.total.toFixed(2)}
-                      </Badge>
-                    </div>
-                    {line.items?.map((item, idx) => (
-                      <div key={idx} className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span className="font-medium">{item.quantity}x {item.name}</span>
-                          <span>${(item.quantity * item.price).toFixed(2)}</span>
+                {order.orderLines?.map((line, lineIdx) => {
+                  const lineTotal = line.total || calculateLineTotal(line);
+                  
+                  return (
+                    <div key={line.id || lineIdx} className="space-y-2 p-3 bg-muted/50 rounded border">
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs text-muted-foreground">
+                          Line {lineIdx + 1} - {line.createdAt ? new Date(line.createdAt).toLocaleTimeString() : 'N/A'}
                         </div>
-                        {item.customizations && item.customizations.length > 0 && (
-                          <div className="ml-4 text-xs text-muted-foreground space-y-0.5">
-                            {item.customizations.map((custom, cIdx) => (
-                              <div key={cIdx} className="flex justify-between">
-                                <span>+ {custom.optionName}</span>
-                                <span>+${custom.price.toFixed(2)}</span>
-                              </div>
-                            ))}
+                        <Badge variant="outline" className="text-xs">
+                          ${lineTotal.toFixed(2)}
+                        </Badge>
+                      </div>
+                      {line.items?.map((item, idx) => (
+                        <div key={idx} className="space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span className="font-medium">{item.quantity || 0}x {item.name || 'Unknown Item'}</span>
+                            <span>${((item.quantity || 0) * (item.price || 0)).toFixed(2)}</span>
                           </div>
-                        )}
-                      </div>
-                    ))}
-                    {line.notes && (
-                      <div className="text-xs text-muted-foreground italic border-t pt-2 mt-2">
-                        Note: {line.notes}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                          {item.customizations && item.customizations.length > 0 && (
+                            <div className="ml-4 text-xs text-muted-foreground space-y-0.5">
+                              {item.customizations.map((custom, cIdx) => (
+                                <div key={cIdx} className="flex justify-between">
+                                  <span>+ {custom.optionName || custom.customizationName || 'Customization'}</span>
+                                  <span>+${(custom.price || 0).toFixed(2)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      {line.notes && (
+                        <div className="text-xs text-muted-foreground italic border-t pt-2 mt-2">
+                          Note: {line.notes}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </CollapsibleContent>
           </Collapsible>
@@ -131,7 +150,7 @@ const OrdersPage = () => {
           <div className="pt-2 border-t">
             <div className="flex justify-between font-semibold">
               <span>Total</span>
-              <span>${order.total.toFixed(2)}</span>
+              <span>${orderTotal.toFixed(2)}</span>
             </div>
           </div>
 

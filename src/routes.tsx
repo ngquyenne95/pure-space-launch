@@ -41,7 +41,6 @@ import OwnerCustomizationPage from './pages/dashboard/owner/CustomizationPage';
 import WaiterOrdersPage from './pages/dashboard/waiter/OrdersPage';
 import WaiterTablesPage from './pages/dashboard/waiter/TablesPage';
 import WaiterMenuPage from './pages/dashboard/waiter/MenuPage';
-import WaiterReservationsPage from './pages/dashboard/waiter/ReservationsPage';
 
 // Admin nested pages
 import AdminOverviewPage from './pages/dashboard/admin/OverviewPage';
@@ -232,10 +231,6 @@ export const routes: RouteObject[] = [
       {
         path: 'orders',
         element: <WaiterOrdersPage />,
-      },
-      {
-        path: 'reservations',
-        element: <WaiterReservationsPage />,
       },
       {
         path: 'tables',

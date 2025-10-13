@@ -22,13 +22,6 @@ const menuItems = [
     description: 'Manage orders'
   },
   { 
-    id: 'reservations',
-    path: '/dashboard/waiter/reservations',
-    icon: UtensilsCrossed,
-    label: 'Reservations',
-    description: 'View reservations'
-  },
-  { 
     id: 'tables',
     path: '/dashboard/waiter/tables',
     icon: Table2,

@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Users, Clock, Eye, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
-import { TableStatusDialog } from '@/components/staff/TableStatusDialog';
-import { TableDetailsDialog } from '@/components/staff/TableDetailsDialog';
+import { TableStatusDialog } from '@/components/waiter/TableStatusDialog';
+import { TableDetailsDialog } from '@/components/waiter/TableDetailsDialog';
 
 const TablesPage = () => {
   const { user } = useAuthStore();
@@ -74,9 +74,9 @@ const TablesPage = () => {
           const floorTables = (floorMap.get(floor) || [])
             .filter(t => t.status !== 'out_of_service')
             .sort((a, b) => a.number - b.number);
-          
+
           if (floorTables.length === 0) return null;
-          
+
           return (
             <div key={floor} className="space-y-3">
               <div className="flex items-center gap-3">
@@ -91,105 +91,49 @@ const TablesPage = () => {
 
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {floorTables.map((table) => {
-                  const tableReservations = getTableReservations(table.id);
-                  const currentResIndex = getCurrentReservationIndex(table.id);
-                  const currentReservation = tableReservations[currentResIndex];
+                  const tableReservations = getReservationsByTable(table.id);
 
                   return (
-                    <Card key={table.id}>
-                      <CardHeader>
+                    <Card key={table.id} className="flex flex-col h-full overflow-hidden">
+                      <CardHeader className="flex flex-col gap-2">
                         <div className="flex justify-between items-start">
                           <CardTitle className="text-lg">Table {table.number}</CardTitle>
-                          <div className="flex flex-col gap-2 items-end">
-                            <Badge variant={getStatusColor(table.status)}>
-                              {table.status}
+                          <Badge variant={getStatusColor(table.status)}>
+                            {table.status}
+                          </Badge>
+                        </div>
+                        <div className="flex gap-2 items-center">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">
+                            Capacity: {table.capacity} guests
+                          </span>
+                          {tableReservations.length > 0 && (
+                            <Badge
+                              variant="secondary"
+                              className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100"
+                            >
+                              <Calendar className="h-3 w-3 mr-1" />
+                              {tableReservations.length} {tableReservations.length === 1 ? 'Reservation' : 'Reservations'}
                             </Badge>
-                            {tableReservations.length > 0 && (
-                              <Badge variant="secondary" className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100">
-                                <Calendar className="h-3 w-3 mr-1" />
-                                {tableReservations.length} {tableReservations.length === 1 ? 'Reservation' : 'Reservations'}
-                              </Badge>
-                            )}
-                          </div>
+                          )}
                         </div>
                       </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Users className="h-4 w-4" />
-                          <span>Capacity: {table.capacity} guests</span>
-                        </div>
-                        
-                        {currentReservation && (
-                          <div className="space-y-2 p-3 bg-muted rounded-lg border border-orange-200 dark:border-orange-800">
-                            <div className="flex items-center justify-between">
-                              <div className="text-sm font-semibold flex items-center gap-2">
-                                <Clock className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                                Reservation {currentResIndex + 1}/{tableReservations.length}
-                              </div>
-                              {tableReservations.length > 1 && (
-                                <div className="flex gap-1">
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-6 w-6"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handlePrevReservation(table.id, tableReservations.length - 1);
-                                    }}
-                                  >
-                                    <ChevronLeft className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-6 w-6"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleNextReservation(table.id, tableReservations.length - 1);
-                                    }}
-                                  >
-                                    <ChevronRight className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                            <div className="text-xs text-muted-foreground space-y-1">
-                              <p className="font-medium">Guest: {currentReservation.guestName}</p>
-                              <p>Party size: {currentReservation.numberOfGuests} guests</p>
-                              <p>From: {new Date(currentReservation.reservationStart).toLocaleString()}</p>
-                              <p>To: {new Date(currentReservation.reservationEnd).toLocaleString()}</p>
-                              {currentReservation.notes && (
-                                <p className="italic pt-1 border-t">Note: {currentReservation.notes}</p>
-                              )}
-                            </div>
-                          </div>
-                        )}
 
-                        {table.status === 'occupied' && tableReservations.length === 0 && (
-                          <div className="space-y-2 p-3 bg-muted rounded-lg">
-                            <div className="flex items-center gap-2 text-sm">
-                              <Clock className="h-4 w-4" />
-                              <span>Currently occupied</span>
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            className="flex-1"
-                            onClick={() => handleViewDetails(table.id)}
-                          >
-                            <Eye className="mr-2 h-4 w-4" />
-                            Details
-                          </Button>
-                          <Button 
-                            className="flex-1"
-                            onClick={() => handleChangeStatus(table.id)}
-                          >
-                            Change Status
-                          </Button>
-                        </div>
+                      <CardContent className="flex gap-2 mt-auto">
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => handleViewDetails(table.id)}
+                        >
+                          <Eye className="mr-2 h-4 w-4" />
+                          Details
+                        </Button>
+                        <Button
+                          className="flex-1"
+                          onClick={() => handleChangeStatus(table.id)}
+                        >
+                          Change Status
+                        </Button>
                       </CardContent>
                     </Card>
                   );

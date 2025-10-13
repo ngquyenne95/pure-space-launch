@@ -5,19 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, Plus, ChevronDown } from 'lucide-react';
+import { Check, X, Plus } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { ManualOrderDialog } from '@/components/staff/ManualOrderDialog';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ManualOrderDialog } from '@/components/waiter/ManualOrderDialog';
 
 const OrdersPage = () => {
   const { user } = useAuthStore();
-  const branchId = user?.branchId || 'branch-1';
+  const branchId = user?.branchId || '1';
   const { orders, updateOrderStatus } = useOrderStore();
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
   const [addOrderlineDialogOpen, setAddOrderlineDialogOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
 
   const branchOrders = orders?.filter(o => o.branchId === branchId) || [];
   const pendingOrders = branchOrders.filter(o => o.status === 'pending');
@@ -41,16 +39,6 @@ const OrdersPage = () => {
   const handleAddOrderline = (orderId: string) => {
     setSelectedOrderId(orderId);
     setAddOrderlineDialogOpen(true);
-  };
-
-  const toggleOrderExpanded = (orderId: string) => {
-    const newExpanded = new Set(expandedOrders);
-    if (newExpanded.has(orderId)) {
-      newExpanded.delete(orderId);
-    } else {
-      newExpanded.add(orderId);
-    }
-    setExpandedOrders(newExpanded);
   };
 
   const getStatusBadge = (status: string) => {
@@ -79,83 +67,68 @@ const OrdersPage = () => {
   };
 
   const renderOrderCard = (order: Order, showActions: boolean = true) => {
-    const isExpanded = expandedOrders.has(order.id);
     const orderTotal = order.total || calculateOrderTotal(order);
 
     return (
-      <Card key={order.id}>
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <CardTitle className="text-lg">
+      <Card key={order.id} className="space-y-3">
+        <CardHeader className="pb-2 border-b">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-lg font-semibold">
               Order #{order.id} - Table {order.tableNumber}
             </CardTitle>
             {getStatusBadge(order.status)}
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <Collapsible open={isExpanded} onOpenChange={() => toggleOrderExpanded(order.id)}>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" className="w-full justify-between p-2">
-                <span className="text-sm font-medium">
-                  {order.orderLines?.length || 0} orderline{order.orderLines?.length !== 1 ? 's' : ''}
-                </span>
-                <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="space-y-3 pt-2">
-                {order.orderLines?.map((line, lineIdx) => {
-                  const lineTotal = line.total || calculateLineTotal(line);
-                  
-                  return (
-                    <div key={line.id || lineIdx} className="space-y-2 p-3 bg-muted/50 rounded border">
-                      <div className="flex items-center justify-between">
-                        <div className="text-xs text-muted-foreground">
-                          Line {lineIdx + 1} - {line.createdAt ? new Date(line.createdAt).toLocaleTimeString() : 'N/A'}
-                        </div>
-                        <Badge variant="outline" className="text-xs">
-                          ${lineTotal.toFixed(2)}
-                        </Badge>
-                      </div>
-                      {line.items?.map((item, idx) => (
-                        <div key={idx} className="space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span className="font-medium">{item.quantity || 0}x {item.name || 'Unknown Item'}</span>
-                            <span>${((item.quantity || 0) * (item.price || 0)).toFixed(2)}</span>
-                          </div>
-                          {item.customizations && item.customizations.length > 0 && (
-                            <div className="ml-4 text-xs text-muted-foreground space-y-0.5">
-                              {item.customizations.map((custom, cIdx) => (
-                                <div key={cIdx} className="flex justify-between">
-                                  <span>+ {custom.optionName || custom.customizationName || 'Customization'}</span>
-                                  <span>+${(custom.price || 0).toFixed(2)}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                      {line.notes && (
-                        <div className="text-xs text-muted-foreground italic border-t pt-2 mt-2">
-                          Note: {line.notes}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
 
-          <div className="pt-2 border-t">
-            <div className="flex justify-between font-semibold">
-              <span>Total</span>
-              <span>${orderTotal.toFixed(2)}</span>
-            </div>
+        <CardContent className="space-y-3">
+          {order.orderLines?.map((line, lineIdx) => {
+            const lineTotal = line.total || calculateLineTotal(line);
+            return (
+              <div key={line.id || lineIdx} className="p-3 bg-muted/20 rounded border">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-xs text-muted-foreground">
+                    Line {lineIdx + 1} - {line.createdAt ? new Date(line.createdAt).toLocaleTimeString() : 'N/A'}
+                  </span>
+                  <Badge variant="outline" className="text-xs">
+                    ${lineTotal.toFixed(2)}
+                  </Badge>
+                </div>
+
+                {line.items?.map((item, idx) => (
+                  <div key={idx} className="ml-2 space-y-1">
+                    <div className="flex justify-between text-sm font-medium">
+                      <span>{item.quantity || 0}x {item.name || 'Unknown Item'}</span>
+                      <span>${((item.quantity || 0) * (item.price || 0)).toFixed(2)}</span>
+                    </div>
+                    {item.customizations && item.customizations.length > 0 && (
+                      <div className="ml-4 text-xs text-muted-foreground space-y-0.5">
+                        {item.customizations.map((custom, cIdx) => (
+                          <div key={cIdx} className="flex justify-between">
+                            <span>+ {custom.optionName || custom.customizationName || 'Customization'}</span>
+                            <span>+${(custom.price || 0).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {line.notes && (
+                  <div className="text-xs text-muted-foreground italic border-t pt-1 mt-1">
+                    Note: {line.notes}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <div className="pt-2 border-t flex justify-between font-semibold text-sm">
+            <span>Total</span>
+            <span>${orderTotal.toFixed(2)}</span>
           </div>
 
           {showActions && (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 pt-2">
               {order.status === 'pending' && (
                 <>
                   <Button className="flex-1" onClick={() => handleAcceptOrder(order.id)}>

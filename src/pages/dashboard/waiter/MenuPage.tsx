@@ -73,11 +73,11 @@ const MenuPage = () => {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredItems.map((item) => (
-          <Card key={item.id} className="overflow-hidden">
-            {item.imageUrl && (
-              <div className="aspect-video bg-muted">
-                <img 
-                  src={item.imageUrl} 
+          <Card key={item.id} className="flex flex-col h-full overflow-hidden">
+            <div className="bg-muted w-full min-h-[180px] flex-shrink-0">
+              {item.imageUrl ? (
+                <img
+                  src={item.imageUrl}
                   alt={item.name}
                   className="w-full h-full object-cover"
                   onError={(e) => {
@@ -85,9 +85,13 @@ const MenuPage = () => {
                     target.style.display = 'none';
                   }}
                 />
-              </div>
-            )}
-            <CardHeader>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                  No Image
+                </div>
+              )}
+            </div>
+            <CardHeader className="pt-2 pb-1 px-3 flex flex-col gap-1">
               <div className="flex justify-between items-start">
                 <CardTitle className="text-lg">{item.name}</CardTitle>
                 {item.available ? (
@@ -97,15 +101,15 @@ const MenuPage = () => {
                 )}
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="flex flex-col justify-between px-3 pb-3 flex-1 space-y-3">
               <p className="text-sm text-muted-foreground">{item.description}</p>
               <div className="flex justify-between items-center">
                 <span className="text-lg font-semibold">${item.price.toFixed(2)}</span>
                 <Badge variant="outline">{item.category}</Badge>
               </div>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
+              <div className="flex gap-2 mt-auto">
+                <Button
+                  variant="outline"
                   className="flex-1"
                   onClick={() => handleViewItem(item.id)}
                 >
@@ -125,6 +129,7 @@ const MenuPage = () => {
           </Card>
         ))}
       </div>
+
 
       <MenuItemViewDialog
         item={menuItems.find(i => i.id === selectedItem)}

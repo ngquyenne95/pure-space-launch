@@ -1,8 +1,8 @@
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AreaFloorManagement } from '@/components/staff/AreaFloorManagement';
-import { MenuManagement } from '@/components/staff/MenuManagement';
-import { OrderManagement } from '@/components/staff/OrderManagement';
+import { AreaFloorManagement } from '@/components/waiter/AreaFloorManagement';
+import { MenuManagement } from '@/components/waiter/MenuManagement';
+import { OrderManagement } from '@/components/waiter/OrderManagement';
 import { useAuthStore } from '@/store/authStore';
 
 const StaffDashboard = () => {

@@ -38,8 +38,6 @@ export const ManualOrderDialog = ({ open, onOpenChange, branchId }: ManualOrderD
     quantity: 1,
     customizationItems: []
   }]);
-  const [guestName, setGuestName] = useState('');
-  const [guestPhone, setGuestPhone] = useState('');
   const [notes, setNotes] = useState('');
   const [customizationDialogOpen, setCustomizationDialogOpen] = useState(false);
   const [selectedLineIndex, setSelectedLineIndex] = useState<number | null>(null);
@@ -175,8 +173,8 @@ export const ManualOrderDialog = ({ open, onOpenChange, branchId }: ManualOrderD
       addOrder({
         branchId,
         branchName: 'Staff Order',
-        guestName: guestName || 'Walk-in Customer',
-        guestPhone: guestPhone || 'N/A',
+        guestName: 'Walk-in Customer',
+        guestPhone: 'N/A',
         tableNumber: selectedTable,
         orderLines: [{
           id: '', // Will be generated
@@ -196,8 +194,6 @@ export const ManualOrderDialog = ({ open, onOpenChange, branchId }: ManualOrderD
     // Reset form
     setSelectedTable('');
     setOrderLines([{ menuItemId: '', quantity: 1, customizationItems: [] }]);
-    setGuestName('');
-    setGuestPhone('');
     setNotes('');
     onOpenChange(false);
   };
@@ -220,40 +216,20 @@ export const ManualOrderDialog = ({ open, onOpenChange, branchId }: ManualOrderD
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Table *</Label>
-              <Select value={selectedTable} onValueChange={setSelectedTable}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select table" />
-                </SelectTrigger>
-                <SelectContent>
-                  {tables.map(table => (
-                    <SelectItem key={table.id} value={table.number.toString()}>
-                      Table {table.number} (Capacity: {table.capacity})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Guest Name (Optional)</Label>
-              <Input
-                value={guestName}
-                onChange={(e) => setGuestName(e.target.value)}
-                placeholder="Enter guest name"
-              />
-            </div>
-          </div>
-
           <div className="space-y-2">
-            <Label>Guest Phone (Optional)</Label>
-            <Input
-              value={guestPhone}
-              onChange={(e) => setGuestPhone(e.target.value)}
-              placeholder="Enter guest phone"
-            />
+            <Label>Table *</Label>
+            <Select value={selectedTable} onValueChange={setSelectedTable}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select table" />
+              </SelectTrigger>
+              <SelectContent>
+                {tables.map(table => (
+                  <SelectItem key={table.id} value={table.number.toString()}>
+                    Table {table.number} (Capacity: {table.capacity})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

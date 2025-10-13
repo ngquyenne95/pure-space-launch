@@ -30,7 +30,7 @@ interface AdminState {
   getUsersWithPackages: () => SystemUser[];
 }
 
-// Mock initial data
+// Mock initial data - Top spending users for admin dashboard
 const initialUsers: SystemUser[] = [
   {
     id: '1',
@@ -58,6 +58,24 @@ const initialUsers: SystemUser[] = [
     status: 'inactive',
     totalSpent: 29.99,
     packagesPurchased: ['1'],
+  },
+  {
+    id: '4',
+    username: 'sarah_martinez',
+    email: 'sarah.m@example.com',
+    registrationDate: '2024-01-28T11:20:00Z',
+    status: 'active',
+    totalSpent: 1299.95,
+    packagesPurchased: ['1', '2', '3'],
+  },
+  {
+    id: '5',
+    username: 'michael_chang',
+    email: 'm.chang@example.com',
+    registrationDate: '2024-02-05T16:45:00Z',
+    status: 'active',
+    totalSpent: 899.96,
+    packagesPurchased: ['2', '3'],
   },
 ];
 

@@ -76,7 +76,7 @@ const OrdersPage = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-3">
+                 <div className="space-y-3">
                   {order.orderLines?.map((line, lineIdx) => (
                     <div key={line.id} className="space-y-2 p-2 bg-muted/30 rounded">
                       <div className="text-xs text-muted-foreground">
@@ -88,6 +88,11 @@ const OrdersPage = () => {
                           <span>${(item.quantity * item.price).toFixed(2)}</span>
                         </div>
                       ))}
+                      {line.notes && (
+                        <div className="text-xs text-muted-foreground italic border-t pt-2">
+                          Note: {line.notes}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -132,7 +137,7 @@ const OrdersPage = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-3">
+                 <div className="space-y-3">
                   {order.orderLines?.map((line, lineIdx) => (
                     <div key={line.id} className="space-y-2 p-2 bg-muted/30 rounded">
                       <div className="text-xs text-muted-foreground">
@@ -144,6 +149,11 @@ const OrdersPage = () => {
                           <span>${(item.quantity * item.price).toFixed(2)}</span>
                         </div>
                       ))}
+                      {line.notes && (
+                        <div className="text-xs text-muted-foreground italic border-t pt-2">
+                          Note: {line.notes}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -154,11 +164,12 @@ const OrdersPage = () => {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  {order.status === 'ready' && (
-                    <Button className="flex-1" onClick={() => handleComplete(order.id)}>
-                      Complete
-                    </Button>
-                  )}
+                  <Button 
+                    className="flex-1" 
+                    onClick={() => handleComplete(order.id)}
+                  >
+                    Complete
+                  </Button>
                   <Button variant="outline" onClick={() => setSelectedOrder(order.id)}>
                     <Eye className="h-4 w-4" />
                   </Button>

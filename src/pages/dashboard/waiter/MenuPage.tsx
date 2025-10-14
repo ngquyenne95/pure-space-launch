@@ -73,17 +73,12 @@ const MenuPage = () => {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filteredItems.map((item) => (
-<<<<<<< HEAD
           <Card
             key={item.id}
             className="overflow-hidden flex flex-col h-full transition-all hover:shadow-lg hover:-translate-y-1 duration-300"
           >
             {/* --- Fixed image height --- */}
             <div className="h-[220px] w-full bg-muted flex items-center justify-center overflow-hidden">
-=======
-          <Card key={item.id} className="flex flex-col h-full overflow-hidden">
-            <div className="bg-muted w-full min-h-[180px] flex-shrink-0">
->>>>>>> b274b35120821ecaaa24db4bbff8ad41ccf2d0e9
               {item.imageUrl ? (
                 <img
                   src={item.imageUrl}
@@ -95,7 +90,6 @@ const MenuPage = () => {
                   }}
                 />
               ) : (
-<<<<<<< HEAD
                 <span className="text-sm text-muted-foreground">No image</span>
               )}
             </div>
@@ -134,33 +128,6 @@ const MenuPage = () => {
                 <Button
                   variant="outline"
                   className="flex-1 h-10"
-=======
-                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                  No Image
-                </div>
-              )}
-            </div>
-            <CardHeader className="pt-2 pb-1 px-3 flex flex-col gap-1">
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-lg">{item.name}</CardTitle>
-                {item.available ? (
-                  <Badge>Available</Badge>
-                ) : (
-                  <Badge variant="destructive">Unavailable</Badge>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="flex flex-col justify-between px-3 pb-3 flex-1 space-y-3">
-              <p className="text-sm text-muted-foreground">{item.description}</p>
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-semibold">${item.price.toFixed(2)}</span>
-                <Badge variant="outline">{item.category}</Badge>
-              </div>
-              <div className="flex gap-2 mt-auto">
-                <Button
-                  variant="outline"
-                  className="flex-1"
->>>>>>> b274b35120821ecaaa24db4bbff8ad41ccf2d0e9
                   onClick={() => handleViewItem(item.id)}
                 >
                   <Eye className="mr-2 h-4 w-4" />

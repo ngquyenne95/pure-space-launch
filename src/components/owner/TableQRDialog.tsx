@@ -74,9 +74,14 @@ export const TableQRDialog = ({ open, onOpenChange, table }: TableQRDialogProps)
           </div>
 
           <div className="w-full space-y-3">
-            <div className="p-3 bg-muted rounded-lg">
-              <p className="text-xs text-muted-foreground mb-1">Table URL</p>
-              <p className="text-sm font-mono break-all">{tableUrl}</p>
+            <div className="p-3 bg-muted rounded-lg border">
+              <p className="text-xs text-muted-foreground mb-1 font-medium">Table URL</p>
+              <p className="text-sm font-mono break-all select-all">{tableUrl}</p>
+            </div>
+
+            <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+              <p className="text-xs text-primary font-medium mb-1">Share this URL</p>
+              <p className="text-xs text-muted-foreground">Guests can scan the QR code or visit this URL to view the menu and place orders for Table {table.number}</p>
             </div>
 
             <div className="flex gap-2">

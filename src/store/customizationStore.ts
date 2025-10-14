@@ -21,155 +21,197 @@ export interface MenuItemCustomization {
   customizationId: string;
 }
 
-interface CustomizationState {
+export interface MenuItem {
+  id: string;
+  branchId: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  parentCategory?: string;
+  imageUrl?: string;
+  available: boolean;
+  customizations: Customization[]; // đồng bộ từ CustomizationStore
+  createdAt: string;
+}
+
+interface MenuCustomizationState {
   customizations: Customization[];
   categoryCustomizations: CategoryCustomization[];
   menuItemCustomizations: MenuItemCustomization[];
-  
-  // Customization CRUD
+  menuItems: MenuItem[];
+
+  // --- Customization CRUD ---
   addCustomization: (customization: Omit<Customization, 'id' | 'createdAt'>) => void;
   updateCustomization: (id: string, updates: Partial<Customization>) => void;
   deleteCustomization: (id: string) => void;
-  getCustomizationsByBranch: (branchId: string) => Customization[];
-  
-  // Category customization links
+
+  // --- Category & MenuItem link ---
   linkCategoryCustomization: (categoryName: string, customizationId: string, branchId: string) => void;
   unlinkCategoryCustomization: (categoryName: string, customizationId: string, branchId: string) => void;
-  getCategoryCustomizations: (categoryName: string, branchId: string) => Customization[];
-  
-  // Menu item customization links
+
   linkMenuItemCustomization: (menuItemId: string, customizationId: string) => void;
   unlinkMenuItemCustomization: (menuItemId: string, customizationId: string) => void;
-  getMenuItemCustomizations: (menuItemId: string) => Customization[];
+
+  // --- MenuItem CRUD ---
+  addMenuItem: (item: Omit<MenuItem, 'id' | 'createdAt' | 'customizations'>) => void;
+  updateMenuItem: (id: string, updates: Partial<MenuItem>) => void;
+  deleteMenuItem: (id: string) => void;
+
+  getMenuItemsByBranch: (branchId: string) => MenuItem[];
+  getMenuItemById: (id: string) => MenuItem | undefined;
 }
 
-const STORAGE_KEY_CUSTOMIZATIONS = 'customizations';
-const STORAGE_KEY_CATEGORY_CUSTOMIZATIONS = 'category_customizations';
-const STORAGE_KEY_MENUITEM_CUSTOMIZATIONS = 'menuitem_customizations';
+// ---------- LocalStorage helpers ----------
+const STORAGE_KEYS = {
+  CUSTOMIZATIONS: 'customizations',
+  CATEGORY_CUSTOMIZATIONS: 'category_customizations',
+  MENUITEM_CUSTOMIZATIONS: 'menuitem_customizations',
+  MENU_ITEMS: 'menu_items',
+};
 
-const loadCustomizations = (): Customization[] => {
-  const stored = localStorage.getItem(STORAGE_KEY_CUSTOMIZATIONS);
+const load = <T>(key: string): T[] => {
+  const stored = localStorage.getItem(key);
   return stored ? JSON.parse(stored) : [];
 };
 
-const loadCategoryCustomizations = (): CategoryCustomization[] => {
-  const stored = localStorage.getItem(STORAGE_KEY_CATEGORY_CUSTOMIZATIONS);
-  return stored ? JSON.parse(stored) : [];
+const save = <T>(key: string, data: T[]) => {
+  localStorage.setItem(key, JSON.stringify(data));
 };
 
-const loadMenuItemCustomizations = (): MenuItemCustomization[] => {
-  const stored = localStorage.getItem(STORAGE_KEY_MENUITEM_CUSTOMIZATIONS);
-  return stored ? JSON.parse(stored) : [];
-};
+// ---------- Store ----------
+export const useCustomizationStore = create<MenuCustomizationState>((set, get) => ({
+  customizations: load<Customization>(STORAGE_KEYS.CUSTOMIZATIONS),
+  categoryCustomizations: load<CategoryCustomization>(STORAGE_KEYS.CATEGORY_CUSTOMIZATIONS),
+  menuItemCustomizations: load<MenuItemCustomization>(STORAGE_KEYS.MENUITEM_CUSTOMIZATIONS),
+  menuItems: load<MenuItem>(STORAGE_KEYS.MENU_ITEMS),
 
-const saveCustomizations = (customizations: Customization[]) => {
-  localStorage.setItem(STORAGE_KEY_CUSTOMIZATIONS, JSON.stringify(customizations));
-};
-
-const saveCategoryCustomizations = (links: CategoryCustomization[]) => {
-  localStorage.setItem(STORAGE_KEY_CATEGORY_CUSTOMIZATIONS, JSON.stringify(links));
-};
-
-const saveMenuItemCustomizations = (links: MenuItemCustomization[]) => {
-  localStorage.setItem(STORAGE_KEY_MENUITEM_CUSTOMIZATIONS, JSON.stringify(links));
-};
-
-export const useCustomizationStore = create<CustomizationState>((set, get) => ({
-  customizations: loadCustomizations(),
-  categoryCustomizations: loadCategoryCustomizations(),
-  menuItemCustomizations: loadMenuItemCustomizations(),
-
+  // --- Customization CRUD ---
   addCustomization: (customization) => {
-    const newCustomization: Customization = {
-      ...customization,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-    };
-    const customizations = [...get().customizations, newCustomization];
-    saveCustomizations(customizations);
+    const newCust: Customization = { ...customization, id: Date.now().toString(), createdAt: new Date().toISOString() };
+    const customizations = [...get().customizations, newCust];
+    save(STORAGE_KEYS.CUSTOMIZATIONS, customizations);
     set({ customizations });
   },
 
   updateCustomization: (id, updates) => {
-    const customizations = get().customizations.map((c) =>
-      c.id === id ? { ...c, ...updates } : c
-    );
-    saveCustomizations(customizations);
-    set({ customizations });
+    const customizations = get().customizations.map(c => c.id === id ? { ...c, ...updates } : c);
+    save(STORAGE_KEYS.CUSTOMIZATIONS, customizations);
+
+    // Đồng bộ menuItems liên quan
+    const menuItems = get().menuItems.map(item => ({
+      ...item,
+      customizations: item.customizations.map(c => c.id === id ? { ...c, ...updates } : c)
+    }));
+    save(STORAGE_KEYS.MENU_ITEMS, menuItems);
+
+    set({ customizations, menuItems });
   },
 
   deleteCustomization: (id) => {
-    const customizations = get().customizations.filter((c) => c.id !== id);
-    saveCustomizations(customizations);
-    set({ customizations });
+    const customizations = get().customizations.filter(c => c.id !== id);
+    save(STORAGE_KEYS.CUSTOMIZATIONS, customizations);
+
+    // Xóa trong category link
+    const categoryCustomizations = get().categoryCustomizations.filter(l => l.customizationId !== id);
+    save(STORAGE_KEYS.CATEGORY_CUSTOMIZATIONS, categoryCustomizations);
+
+    // Xóa trong menuItem link
+    const menuItemCustomizations = get().menuItemCustomizations.filter(l => l.customizationId !== id);
+    save(STORAGE_KEYS.MENUITEM_CUSTOMIZATIONS, menuItemCustomizations);
+
+    // Xóa trong menuItems
+    const menuItems = get().menuItems.map(item => ({
+      ...item,
+      customizations: item.customizations.filter(c => c.id !== id)
+    }));
+    save(STORAGE_KEYS.MENU_ITEMS, menuItems);
+
+    set({ customizations, categoryCustomizations, menuItemCustomizations, menuItems });
   },
 
-  getCustomizationsByBranch: (branchId) => {
-    return get().customizations.filter((c) => c.branchId === branchId);
-  },
-
+  // --- Category link ---
   linkCategoryCustomization: (categoryName, customizationId, branchId) => {
-    const links = get().categoryCustomizations;
-    const exists = links.find(
-      (l) => l.categoryName === categoryName && l.customizationId === customizationId && l.branchId === branchId
-    );
+    const exists = get().categoryCustomizations.find(l => l.categoryName === categoryName && l.customizationId === customizationId && l.branchId === branchId);
     if (!exists) {
-      const newLink: CategoryCustomization = {
-        id: Date.now().toString(),
-        categoryName,
-        customizationId,
-        branchId,
-      };
-      const newLinks = [...links, newLink];
-      saveCategoryCustomizations(newLinks);
-      set({ categoryCustomizations: newLinks });
+      const newLink: CategoryCustomization = { id: Date.now().toString(), categoryName, customizationId, branchId };
+      const categoryCustomizations = [...get().categoryCustomizations, newLink];
+      save(STORAGE_KEYS.CATEGORY_CUSTOMIZATIONS, categoryCustomizations);
+      set({ categoryCustomizations });
     }
   },
 
   unlinkCategoryCustomization: (categoryName, customizationId, branchId) => {
-    const links = get().categoryCustomizations.filter(
-      (l) => !(l.categoryName === categoryName && l.customizationId === customizationId && l.branchId === branchId)
-    );
-    saveCategoryCustomizations(links);
-    set({ categoryCustomizations: links });
+    const categoryCustomizations = get().categoryCustomizations.filter(l => !(l.categoryName === categoryName && l.customizationId === customizationId && l.branchId === branchId));
+    save(STORAGE_KEYS.CATEGORY_CUSTOMIZATIONS, categoryCustomizations);
+    set({ categoryCustomizations });
   },
 
-  getCategoryCustomizations: (categoryName, branchId) => {
-    const links = get().categoryCustomizations.filter(
-      (l) => l.categoryName === categoryName && l.branchId === branchId
-    );
-    const customizations = get().customizations;
-    return links.map((l) => customizations.find((c) => c.id === l.customizationId)).filter(Boolean) as Customization[];
-  },
-
+  // --- MenuItem link ---
   linkMenuItemCustomization: (menuItemId, customizationId) => {
-    const links = get().menuItemCustomizations;
-    const exists = links.find(
-      (l) => l.menuItemId === menuItemId && l.customizationId === customizationId
-    );
+    const exists = get().menuItemCustomizations.find(l => l.menuItemId === menuItemId && l.customizationId === customizationId);
     if (!exists) {
-      const newLink: MenuItemCustomization = {
-        id: Date.now().toString(),
-        menuItemId,
-        customizationId,
-      };
-      const newLinks = [...links, newLink];
-      saveMenuItemCustomizations(newLinks);
-      set({ menuItemCustomizations: newLinks });
+      const newLink: MenuItemCustomization = { id: Date.now().toString(), menuItemId, customizationId };
+      const menuItemCustomizations = [...get().menuItemCustomizations, newLink];
+      save(STORAGE_KEYS.MENUITEM_CUSTOMIZATIONS, menuItemCustomizations);
+
+      // Đồng bộ vào menuItem.customizations
+      const cust = get().customizations.find(c => c.id === customizationId);
+      if (cust) {
+        const menuItems = get().menuItems.map(item => {
+          if (item.id === menuItemId) {
+            return { ...item, customizations: [...item.customizations, cust] };
+          }
+          return item;
+        });
+        save(STORAGE_KEYS.MENU_ITEMS, menuItems);
+        set({ menuItems });
+      }
+
+      set({ menuItemCustomizations });
     }
   },
 
   unlinkMenuItemCustomization: (menuItemId, customizationId) => {
-    const links = get().menuItemCustomizations.filter(
-      (l) => !(l.menuItemId === menuItemId && l.customizationId === customizationId)
-    );
-    saveMenuItemCustomizations(links);
-    set({ menuItemCustomizations: links });
+    const menuItemCustomizations = get().menuItemCustomizations.filter(l => !(l.menuItemId === menuItemId && l.customizationId === customizationId));
+    save(STORAGE_KEYS.MENUITEM_CUSTOMIZATIONS, menuItemCustomizations);
+
+    // Đồng bộ xóa trong menuItem.customizations
+    const menuItems = get().menuItems.map(item => ({
+      ...item,
+      customizations: item.customizations.filter(c => !(c.id === customizationId))
+    }));
+    save(STORAGE_KEYS.MENU_ITEMS, menuItems);
+
+    set({ menuItemCustomizations, menuItems });
   },
 
-  getMenuItemCustomizations: (menuItemId) => {
-    const links = get().menuItemCustomizations.filter((l) => l.menuItemId === menuItemId);
-    const customizations = get().customizations;
-    return links.map((l) => customizations.find((c) => c.id === l.customizationId)).filter(Boolean) as Customization[];
+  // --- MenuItem CRUD ---
+  addMenuItem: (item) => {
+    const newItem: MenuItem = { ...item, id: Date.now().toString(), createdAt: new Date().toISOString(), customizations: [] };
+    const menuItems = [...get().menuItems, newItem];
+    save(STORAGE_KEYS.MENU_ITEMS, menuItems);
+    set({ menuItems });
   },
+
+  updateMenuItem: (id, updates) => {
+    const menuItems = get().menuItems.map(item => item.id === id ? { ...item, ...updates } : item);
+    save(STORAGE_KEYS.MENU_ITEMS, menuItems);
+    set({ menuItems });
+  },
+
+  deleteMenuItem: (id) => {
+    const menuItems = get().menuItems.filter(item => item.id !== id);
+    save(STORAGE_KEYS.MENU_ITEMS, menuItems);
+
+    // Xóa liên kết menuItemCustomizations
+    const menuItemCustomizations = get().menuItemCustomizations.filter(l => l.menuItemId !== id);
+    save(STORAGE_KEYS.MENUITEM_CUSTOMIZATIONS, menuItemCustomizations);
+
+    set({ menuItems, menuItemCustomizations });
+  },
+
+  getMenuItemsByBranch: (branchId) => get().menuItems.filter(item => item.branchId === branchId),
+
+  getMenuItemById: (id) => get().menuItems.find(item => item.id === id),
 }));

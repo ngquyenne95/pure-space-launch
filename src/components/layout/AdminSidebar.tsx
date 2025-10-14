@@ -3,11 +3,11 @@ import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/authStore';
 import {
   UtensilsCrossed,
-  ClipboardList,
-  Receipt,
-  Menu,
+  Shield,
   LogOut,
-  Table2,
+  LayoutDashboard,
+  Users,
+  Package,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -15,29 +15,29 @@ import { cn } from '@/lib/utils';
 
 const menuItems = [
   { 
-    id: 'orders',
-    path: '/dashboard/waiter/orders',
-    icon: ClipboardList,
-    label: 'Orders',
-    description: 'Manage orders'
+    id: 'overview',
+    path: '/dashboard/admin',
+    icon: LayoutDashboard,
+    label: 'Overview',
+    description: 'System metrics'
   },
   { 
-    id: 'tables',
-    path: '/dashboard/waiter/tables',
-    icon: Table2,
-    label: 'Tables',
-    description: 'Table status'
+    id: 'users',
+    path: '/dashboard/admin/users',
+    icon: Users,
+    label: 'Users',
+    description: 'Manage users'
   },
   { 
-    id: 'menu',
-    path: '/dashboard/waiter/menu',
-    icon: Menu,
-    label: 'Menu',
-    description: 'View menu items'
+    id: 'packages',
+    path: '/dashboard/admin/packages',
+    icon: Package,
+    label: 'Packages',
+    description: 'Manage packages'
   },
 ];
 
-export const WaiterSidebar = () => {
+export const AdminSidebar = () => {
   const location = useLocation();
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
@@ -48,21 +48,19 @@ export const WaiterSidebar = () => {
   };
 
   const isActiveRoute = (path: string) => {
-    return location.pathname === path || (path === '/dashboard/waiter/orders' && location.pathname === '/dashboard/waiter');
+    return location.pathname === path || (path === '/dashboard/admin' && location.pathname === '/dashboard/admin');
   };
-
-  const branchName = localStorage.getItem('selected_branch_name') || 'Branch';
 
   return (
     <aside className="w-72 border-r bg-card shadow-soft flex flex-col fixed h-screen">
       <div className="p-6 border-b">
-        <Link to="/dashboard/waiter" className="flex items-center gap-2">
+        <Link to="/dashboard/admin" className="flex items-center gap-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg gradient-primary">
             <UtensilsCrossed className="h-6 w-6 text-primary-foreground" />
           </div>
           <div>
             <span className="text-xl font-bold block">HillDevilOS</span>
-            <span className="text-xs text-muted-foreground">Waiter Portal</span>
+            <span className="text-xs text-muted-foreground">Admin Portal</span>
           </div>
         </Link>
       </div>
@@ -105,17 +103,17 @@ export const WaiterSidebar = () => {
         <div className="flex items-center gap-3 mb-4 p-3 rounded-lg bg-card">
           <Avatar className="h-10 w-10">
             <AvatarFallback className="gradient-primary text-primary-foreground">
-              {user?.name?.charAt(0) || 'W'}
+              {user?.name?.charAt(0) || 'A'}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{user?.name || 'Waiter'}</p>
+            <p className="text-sm font-medium truncate">{user?.name || 'Admin'}</p>
             <div className="flex items-center gap-1 mt-0.5">
-              <Badge variant="secondary" className="text-xs px-1.5 py-0">
-                Waiter
+              <Badge variant="default" className="text-xs px-1.5 py-0 flex items-center gap-1">
+                <Shield className="h-3 w-3" />
+                Administrator
               </Badge>
             </div>
-            <p className="text-xs text-muted-foreground truncate mt-0.5">{branchName}</p>
           </div>
         </div>
         <Button

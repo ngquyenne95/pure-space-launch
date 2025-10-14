@@ -41,7 +41,11 @@ import OwnerCustomizationPage from './pages/dashboard/owner/CustomizationPage';
 import WaiterOrdersPage from './pages/dashboard/waiter/OrdersPage';
 import WaiterTablesPage from './pages/dashboard/waiter/TablesPage';
 import WaiterMenuPage from './pages/dashboard/waiter/MenuPage';
-import WaiterBillingPage from './pages/dashboard/waiter/BillingPage';
+
+// Admin nested pages
+import AdminOverviewPage from './pages/dashboard/admin/OverviewPage';
+import AdminUsersPage from './pages/dashboard/admin/UsersPage';
+import AdminPackagesPage from './pages/dashboard/admin/PackagesPage';
 
 // Receptionist nested pages
 import ReceptionistReservationsPage from './pages/dashboard/receptionist/ReservationsPage';
@@ -197,6 +201,20 @@ export const routes: RouteObject[] = [
         <AdminDashboard />
       </ProtectedRoute>
     ),
+    children: [
+      {
+        index: true,
+        element: <AdminOverviewPage />,
+      },
+      {
+        path: 'users',
+        element: <AdminUsersPage />,
+      },
+      {
+        path: 'packages',
+        element: <AdminPackagesPage />,
+      },
+    ],
   },
   {
     path: '/dashboard/waiter',
@@ -221,10 +239,6 @@ export const routes: RouteObject[] = [
       {
         path: 'menu',
         element: <WaiterMenuPage />,
-      },
-      {
-        path: 'billing',
-        element: <WaiterBillingPage />,
       },
     ],
   },

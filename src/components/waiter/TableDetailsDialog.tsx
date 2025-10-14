@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,16 +17,28 @@ interface TableDetailsDialogProps {
 }
 
 export const TableDetailsDialog = ({ tableId, branchId, open, onOpenChange }: TableDetailsDialogProps) => {
-  const table = useTableStore((state) => state.getTableById(tableId || ''));
+  const getTableById = useTableStore((state) => state.getTableById);
   const getOrdersByTable = useOrderStore((state) => state.getOrdersByTable);
+  
+  // Cache table để tránh render vô hạn
+  const table = useMemo(() => tableId ? getTableById(tableId) : undefined, [tableId, getTableById]);
+
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [billDialogOpen, setBillDialogOpen] = useState(false);
 
   if (!table) return null;
 
-  const allOrders = getOrdersByTable(branchId, table.number.toString());
-  const currentOrders = allOrders.filter(o => !o.billed && ['pending', 'preparing', 'ready', 'completed'].includes(o.status));
-  const pastOrders = allOrders.filter(o => o.billed);
+  const allOrders = useMemo(() => getOrdersByTable(table.id), [table.id, getOrdersByTable]);
+
+  const isBilled = (order: Order) =>
+    order.orderLines.every(line => line.orderLineStatus === 'completed');
+
+  const currentOrders = useMemo(() => 
+    allOrders.filter(o => !isBilled(o) && ['pending', 'preparing', 'ready', 'completed'].includes(o.status)),
+    [allOrders]
+  );
+
+  const pastOrders = useMemo(() => allOrders.filter(isBilled), [allOrders]);
 
   const getStatusBadge = (status: Order['status']) => {
     const variants: Record<string, 'default' | 'secondary' | 'destructive'> = {
@@ -40,19 +52,22 @@ export const TableDetailsDialog = ({ tableId, branchId, open, onOpenChange }: Ta
   };
 
   const handleSelectOrder = (orderId: string) => {
-    setSelectedOrders(prev => 
-      prev.includes(orderId) 
+    setSelectedOrders(prev =>
+      prev.includes(orderId)
         ? prev.filter(id => id !== orderId)
         : [...prev, orderId]
     );
   };
 
-  const completedUnbilledOrders = currentOrders.filter(o => o.status === 'completed');
+  const completedUnbilledOrders = useMemo(
+    () => currentOrders.filter(o => o.status === 'completed'),
+    [currentOrders]
+  );
 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto" aria-describedby="table-details-dialog">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               Table {table.number} - Details
@@ -118,7 +133,7 @@ export const TableDetailsDialog = ({ tableId, branchId, open, onOpenChange }: Ta
                               {new Date(order.createdAt).toLocaleString()}
                             </p>
                           </div>
-                          <p className="font-bold text-lg">${order.total.toFixed(2)}</p>
+                          <p className="font-bold text-lg">${order.totalPrice.toFixed(2)}</p>
                         </div>
 
                         <div className="space-y-3">
@@ -128,18 +143,28 @@ export const TableDetailsDialog = ({ tableId, branchId, open, onOpenChange }: Ta
                                 Line {lineIdx + 1} - {new Date(line.createdAt).toLocaleTimeString()}
                               </div>
                               {line.items.map((item, idx) => (
-                                <div key={idx} className="flex justify-between text-sm">
-                                  <span>{item.quantity}x {item.name}</span>
-                                  <span className="text-muted-foreground">
-                                    ${(item.price * item.quantity).toFixed(2)}
-                                  </span>
+                                <div key={idx} className="flex justify-between text-sm flex-col">
+                                  <div className="flex justify-between w-full">
+                                    <span>{item.quantity}x {item.name}</span>
+                                    <span className="text-muted-foreground">${item.totalPrice.toFixed(2)}</span>
+                                  </div>
+                                  {item.note && (
+                                    <span className="text-xs italic text-muted-foreground mt-0.5">
+                                      Note: {item.note}
+                                    </span>
+                                  )}
+                                  {item.customizations?.length > 0 && (
+                                    <div className="ml-4 mt-1 space-y-1">
+                                      {item.customizations.map((cust) => (
+                                        <div key={cust.id} className="flex justify-between text-xs text-muted-foreground">
+                                          <span>{cust.quantity}x {cust.name}</span>
+                                          <span>${cust.totalPrice.toFixed(2)}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
                                 </div>
                               ))}
-                              {line.notes && (
-                                <p className="text-xs text-muted-foreground italic">
-                                  Note: {line.notes}
-                                </p>
-                              )}
                             </div>
                           ))}
                         </div>
@@ -178,13 +203,13 @@ export const TableDetailsDialog = ({ tableId, branchId, open, onOpenChange }: Ta
                           <p className="text-sm text-muted-foreground">
                             {new Date(order.createdAt).toLocaleString()}
                           </p>
-                          {order.billedAt && (
+                          {order.updatedAt && (
                             <p className="text-xs text-muted-foreground">
-                              Billed: {new Date(order.billedAt).toLocaleString()}
+                              Last Updated: {new Date(order.updatedAt).toLocaleString()}
                             </p>
                           )}
                         </div>
-                        <p className="font-bold text-lg">${order.total.toFixed(2)}</p>
+                        <p className="font-bold text-lg">${order.totalPrice.toFixed(2)}</p>
                       </div>
 
                       <div className="space-y-3">
@@ -197,7 +222,7 @@ export const TableDetailsDialog = ({ tableId, branchId, open, onOpenChange }: Ta
                               <div key={idx} className="flex justify-between text-sm">
                                 <span>{item.quantity}x {item.name}</span>
                                 <span className="text-muted-foreground">
-                                  ${(item.price * item.quantity).toFixed(2)}
+                                  ${item.totalPrice.toFixed(2)}
                                 </span>
                               </div>
                             ))}

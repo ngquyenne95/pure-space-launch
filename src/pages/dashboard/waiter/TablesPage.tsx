@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "@/store/authStore";
@@ -14,9 +15,28 @@ const TablesPage = () => {
   const branchId = user?.branchId || "";
   const { getTablesByBranchAndFloor } = useTableStore();
 
+=======
+import { useState } from 'react';
+import { useAuthStore } from '@/store/authStore';
+import { useTableStore } from '@/store/tableStore';
+import { useReservationStore } from '@/store/reservationStore';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Users, Clock, Eye, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { TableStatusDialog } from '@/components/waiter/TableStatusDialog';
+import { TableDetailsDialog } from '@/components/waiter/TableDetailsDialog';
+
+const TablesPage = () => {
+  const { user } = useAuthStore();
+  const branchId = user?.branchId || '';
+  const { getTablesByBranchAndFloor, getTableById } = useTableStore();
+  const { getReservationsByTable } = useReservationStore();
+>>>>>>> b274b35120821ecaaa24db4bbff8ad41ccf2d0e9
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
+  const [reservationIndexMap, setReservationIndexMap] = useState<Map<string, number>>(new Map());
 
   const floorMap = getTablesByBranchAndFloor(branchId);
   const handleViewDetails = (id: string) => {
@@ -26,6 +46,26 @@ const TablesPage = () => {
   const handleChangeStatus = (id: string) => {
     setSelectedTable(id);
     setStatusDialogOpen(true);
+  };
+
+  const getTableReservations = (tableId: string) => {
+    return getReservationsByTable(tableId);
+  };
+
+  const getCurrentReservationIndex = (tableId: string) => {
+    return reservationIndexMap.get(tableId) || 0;
+  };
+
+  const handleNextReservation = (tableId: string, maxIndex: number) => {
+    const currentIndex = getCurrentReservationIndex(tableId);
+    const newIndex = currentIndex < maxIndex ? currentIndex + 1 : 0;
+    setReservationIndexMap(new Map(reservationIndexMap.set(tableId, newIndex)));
+  };
+
+  const handlePrevReservation = (tableId: string, maxIndex: number) => {
+    const currentIndex = getCurrentReservationIndex(tableId);
+    const newIndex = currentIndex > 0 ? currentIndex - 1 : maxIndex;
+    setReservationIndexMap(new Map(reservationIndexMap.set(tableId, newIndex)));
   };
 
   const getStatusColor = (status: string) => {
@@ -45,6 +85,7 @@ const TablesPage = () => {
         <h2 className="text-2xl font-semibold">Table Management</h2>
       </div>
 
+<<<<<<< HEAD
       <div className="space-y-8">
         {Array.from(floorMap.keys())
           .sort((a, b) => a - b)
@@ -68,8 +109,24 @@ const TablesPage = () => {
                     {floorTables.length} table
                     {floorTables.length !== 1 ? "s" : ""}
                   </span>
+=======
+      <div className="space-y-6">
+        {Array.from(floorMap.keys()).sort((a, b) => a - b).map((floor) => {
+          const floorTables = (floorMap.get(floor) || [])
+            .filter(t => t.status !== 'out_of_service')
+            .sort((a, b) => a.number - b.number);
+
+          if (floorTables.length === 0) return null;
+
+          return (
+            <div key={floor} className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="bg-primary/10 rounded-lg px-4 py-2">
+                  <h3 className="text-lg font-semibold text-primary">Floor {floor}</h3>
+>>>>>>> b274b35120821ecaaa24db4bbff8ad41ccf2d0e9
                 </div>
 
+<<<<<<< HEAD
                 {/* --- Table Cards --- */}
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                   <AnimatePresence>
@@ -202,6 +259,57 @@ const TablesPage = () => {
                     ))}
                   </AnimatePresence>
                 </div>
+=======
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {floorTables.map((table) => {
+                  const tableReservations = getReservationsByTable(table.id);
+
+                  return (
+                    <Card key={table.id} className="flex flex-col h-full overflow-hidden">
+                      <CardHeader className="flex flex-col gap-2">
+                        <div className="flex justify-between items-start">
+                          <CardTitle className="text-lg">Table {table.number}</CardTitle>
+                          <Badge variant={getStatusColor(table.status)}>
+                            {table.status}
+                          </Badge>
+                        </div>
+                        <div className="flex gap-2 items-center">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">
+                            Capacity: {table.capacity} guests
+                          </span>
+                          {tableReservations.length > 0 && (
+                            <Badge
+                              variant="secondary"
+                              className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100"
+                            >
+                              <Calendar className="h-3 w-3 mr-1" />
+                              {tableReservations.length} {tableReservations.length === 1 ? 'Reservation' : 'Reservations'}
+                            </Badge>
+                          )}
+                        </div>
+                      </CardHeader>
+
+                      <CardContent className="flex gap-2 mt-auto">
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => handleViewDetails(table.id)}
+                        >
+                          <Eye className="mr-2 h-4 w-4" />
+                          Details
+                        </Button>
+                        <Button
+                          className="flex-1"
+                          onClick={() => handleChangeStatus(table.id)}
+                        >
+                          Change Status
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+>>>>>>> b274b35120821ecaaa24db4bbff8ad41ccf2d0e9
               </div>
             );
           })}

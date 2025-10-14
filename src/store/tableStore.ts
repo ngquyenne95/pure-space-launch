@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useMemo } from 'react';
 
 export type TableStatus = 'available' | 'occupied' | 'out_of_service';
 
@@ -42,63 +43,71 @@ const generateQRCode = (branchId: string, tableNumber: number): string => {
   return `QR-${branchId}-T${tableNumber}-${Date.now()}`;
 };
 
-export const useTableStore = create<TableState>((set, get) => ({
-  tables: loadTables(),
+export const useTableStore = create<TableState>((set, get) => {
+  let memoizedFloorMap: Map<number, Table[]> | null = null;
+  let lastTables: Table[] = [];
 
-  addTable: (table) => {
-    const newTable: Table = {
-      ...table,
-      id: Date.now().toString(),
-      qrCode: generateQRCode(table.branchId, table.number),
-      createdAt: new Date().toISOString(),
-    };
-    const tables = [...get().tables, newTable];
-    saveTables(tables);
-    set({ tables });
-  },
+  return {
+    tables: loadTables(),
 
-  updateTable: (id, updates) => {
-    const tables = get().tables.map((table) =>
-      table.id === id ? { ...table, ...updates } : table
-    );
-    saveTables(tables);
-    set({ tables });
-  },
+    addTable: (table) => {
+      const newTable: Table = {
+        ...table,
+        id: Date.now().toString(),
+        qrCode: generateQRCode(table.branchId, table.number),
+        createdAt: new Date().toISOString(),
+      };
+      const tables = [...get().tables, newTable];
+      saveTables(tables);
+      set({ tables });
+    },
 
-  updateTableStatus: (id, status) => {
-    const tables = get().tables.map((table) =>
-      table.id === id ? { ...table, status } : table
-    );
-    saveTables(tables);
-    set({ tables });
-  },
+    updateTable: (id, updates) => {
+      const tables = get().tables.map((table) =>
+        table.id === id ? { ...table, ...updates } : table
+      );
+      saveTables(tables);
+      set({ tables });
+    },
 
-  deleteTable: (id) => {
-    const tables = get().tables.filter((table) => table.id !== id);
-    saveTables(tables);
-    set({ tables });
-  },
+    updateTableStatus: (id, status) => {
+      const tables = get().tables.map((table) =>
+        table.id === id ? { ...table, status } : table
+      );
+      saveTables(tables);
+      set({ tables });
+    },
 
-  getTablesByBranch: (branchId) => {
-    return get().tables.filter((table) => table.branchId === branchId);
-  },
+    deleteTable: (id) => {
+      const tables = get().tables.filter((table) => table.id !== id);
+      saveTables(tables);
+      set({ tables });
+    },
 
-  getTablesByBranchAndFloor: (branchId) => {
-    const tables = get().tables.filter((table) => table.branchId === branchId);
-    const floorMap = new Map<number, Table[]>();
-    
-    tables.forEach((table) => {
-      const floor = table.floor || 1;
-      if (!floorMap.has(floor)) {
-        floorMap.set(floor, []);
-      }
-      floorMap.get(floor)!.push(table);
-    });
-    
-    return floorMap;
-  },
+    getTablesByBranch: (branchId) => {
+      return get().tables.filter((table) => table.branchId === branchId);
+    },
 
-  getTableById: (id) => {
-    return get().tables.find((table) => table.id === id);
-  },
-}));
+    getTablesByBranchAndFloor: (branchId) => {
+      const tables = get().tables.filter((table) => table.branchId === branchId);
+
+      // Nếu tables chưa thay đổi, trả về Map cũ
+      if (tables === lastTables && memoizedFloorMap) return memoizedFloorMap;
+
+      const floorMap = new Map<number, Table[]>();
+      tables.forEach((table) => {
+        const floor = table.floor || 1;
+        if (!floorMap.has(floor)) floorMap.set(floor, []);
+        floorMap.get(floor)!.push(table);
+      });
+
+      memoizedFloorMap = floorMap;
+      lastTables = tables;
+      return floorMap;
+    },
+
+    getTableById: (id) => {
+      return get().tables.find((table) => table.id === id);
+    },
+  };
+});

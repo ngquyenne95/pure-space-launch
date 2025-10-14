@@ -32,8 +32,8 @@ import OwnerOverviewPage from './pages/dashboard/owner/OverviewPage';
 import OwnerMenuPage from './pages/dashboard/owner/MenuPage';
 import OwnerTablesPage from './pages/dashboard/owner/TablesPage';
 import OwnerStaffPage from './pages/dashboard/owner/StaffPage';
-import OwnerCategoriesPage from './pages/dashboard/owner/CategoriesPage';
-import OwnerCustomizationsPage from './pages/dashboard/owner/CustomizationsPage';
+// import OwnerCategoriesPage from './pages/dashboard/owner/CategoriesPage';
+// import OwnerCustomizationsPage from './pages/dashboard/owner/CustomizationsPage';
 import OwnerReportsPage from './pages/dashboard/owner/ReportsPage';
 import OwnerCustomizationPage from './pages/dashboard/owner/CustomizationPage';
 
@@ -122,14 +122,14 @@ export const routes: RouteObject[] = [
         path: 'staff',
         element: <OwnerStaffPage />,
       },
-      {
-        path: 'categories',
-        element: <OwnerCategoriesPage />,
-      },
-      {
-        path: 'customizations',
-        element: <OwnerCustomizationsPage />,
-      },
+      // {
+      //   path: 'categories',
+      //   element: <OwnerCategoriesPage />,
+      // },
+      // {
+      //   path: 'customizations',
+      //   element: <OwnerCustomizationsPage />,
+      // },
       {
         path: 'reports',
         element: <OwnerReportsPage />,

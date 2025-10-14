@@ -59,20 +59,13 @@ const OwnerDashboardLayout = ({ children }: OwnerDashboardLayoutProps) => {
       label: 'Staff Management',
       description: 'Manage staff accounts'
     },
-    { 
-      id: 'categories',
-      path: '/dashboard/owner/categories',
-      icon: MenuIcon, 
-      label: 'Categories',
-      description: 'Manage category customizations'
-    },
-    { 
-      id: 'customizations',
-      path: '/dashboard/owner/customizations',
-      icon: Settings, 
-      label: 'Customizations',
-      description: 'Manage all customizations'
-    },
+    // { 
+    //   id: 'categories',
+    //   path: '/dashboard/owner/categories',
+    //   icon: MenuIcon, 
+    //   label: 'Categories',
+    //   description: 'Manage category customizations'
+    // },
     { 
       id: 'customization',
       path: '/dashboard/owner/customization',

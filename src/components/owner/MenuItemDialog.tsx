@@ -13,36 +13,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ImageUpload } from '@/components/ui/image-upload';
 import { useMenuStore, MenuItem } from '@/store/menuStore';
 import { useCustomizationStore } from '@/store/customizationStore';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const DEFAULT_CATEGORIES = [
-  'Appetizers',
-  'Soups & Salads',
-  'Main Course',
-  'Seafood',
-  'Grills',
-  'Pasta & Noodles',
-  'Desserts',
-  'Beverages',
-  'Cocktails',
-  'Milk Tea',
-  'Coffee',
-  'Custom',
+  'Appetizers', 'Soups & Salads', 'Main Course', 'Seafood', 'Grills',
+  'Pasta & Noodles', 'Desserts', 'Beverages', 'Cocktails', 'Milk Tea', 'Coffee', 'Custom',
 ];
 
 const CUSTOMIZATION_CATEGORIES = [
-  'Topping',
-  'Size',
-  'Temperature',
-  'Sweetness',
-  'Custom',
+  'Topping', 'Size', 'Temperature', 'Sweetness', 'Custom',
 ];
 
 const menuItemSchema = z.object({
@@ -74,20 +60,25 @@ export const MenuItemDialog = ({
   const addItem = useMenuStore((state) => state.addItem);
   const updateItem = useMenuStore((state) => state.updateItem);
   const allItems = useMenuStore((state) => state.items);
-  const branchItems = allItems.filter(i => i.branchId === branchId);
+  const branchItems = allItems.filter((i) => i.branchId === branchId);
+
   const {
     getCategoryCustomizations,
     getMenuItemCustomizations,
     linkMenuItemCustomization,
     unlinkMenuItemCustomization,
   } = useCustomizationStore();
-  
+
   const [categoryType, setCategoryType] = useState<string>('');
   const [showCustomCategory, setShowCustomCategory] = useState(false);
   const [customizationCategoryType, setCustomizationCategoryType] = useState<string>('');
   const [showCustomCustomizationCategory, setShowCustomCustomizationCategory] = useState(false);
   const [allowCustomizations, setAllowCustomizations] = useState(false);
   const [selectedCustomizations, setSelectedCustomizations] = useState<Set<string>>(new Set());
+  const [showLeftScroll, setShowLeftScroll] = useState(false);
+  const [showRightScroll, setShowRightScroll] = useState(false);
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const customizationScrollRef = useRef<HTMLDivElement>(null);
 
   const {
     register,
@@ -98,10 +89,7 @@ export const MenuItemDialog = ({
     watch,
   } = useForm<MenuItemFormData>({
     resolver: zodResolver(menuItemSchema),
-    defaultValues: {
-      available: true,
-      isCustomizationCategory: false,
-    },
+    defaultValues: { available: true, isCustomizationCategory: false },
   });
 
   const available = watch('available');
@@ -109,9 +97,8 @@ export const MenuItemDialog = ({
   const parentCategory = watch('parentCategory');
   const category = watch('category');
 
-  // Get available customizations for this menu item
-  const categoryCustomizations = !isCustomizationCategory && category 
-    ? getCategoryCustomizations(category, branchId) 
+  const categoryCustomizations = !isCustomizationCategory && category
+    ? getCategoryCustomizations(category, branchId)
     : [];
   const itemCustomizations = item ? getMenuItemCustomizations(item.id) : [];
 
@@ -120,18 +107,17 @@ export const MenuItemDialog = ({
       const isDefaultCategory = DEFAULT_CATEGORIES.includes(item.category);
       setCategoryType(isDefaultCategory ? item.category : 'Custom');
       setShowCustomCategory(!isDefaultCategory);
-      
+
       if (item.isCustomizationCategory && item.parentCategory) {
         const isDefaultCustomization = CUSTOMIZATION_CATEGORIES.includes(item.category);
         setCustomizationCategoryType(isDefaultCustomization ? item.category : 'Custom');
         setShowCustomCustomizationCategory(!isDefaultCustomization);
       }
 
-      // Load linked customizations
-      const linkedIds = new Set(itemCustomizations.map(c => c.id));
+      const linkedIds = new Set(itemCustomizations.map((c) => c.id));
       setSelectedCustomizations(linkedIds);
       setAllowCustomizations(linkedIds.size > 0);
-      
+
       reset({
         name: item.name,
         description: item.description,
@@ -160,229 +146,113 @@ export const MenuItemDialog = ({
         available: true,
       });
     }
-  }, [item, reset, open, itemCustomizations]);
+  }, [item]);
 
   const handleCategoryTypeChange = (value: string) => {
     setCategoryType(value);
-    if (value === 'Custom') {
-      setShowCustomCategory(true);
-      setValue('category', '');
-    } else {
-      setShowCustomCategory(false);
-      setValue('category', value);
-    }
+    setShowCustomCategory(value === 'Custom');
+    setValue('category', value === 'Custom' ? '' : value);
   };
 
   const handleCustomizationCategoryChange = (value: string) => {
     setCustomizationCategoryType(value);
-    if (value === 'Custom') {
-      setShowCustomCustomizationCategory(true);
-      setValue('category', '');
-    } else {
-      setShowCustomCustomizationCategory(false);
-      setValue('category', value);
-    }
+    setShowCustomCustomizationCategory(value === 'Custom');
+    setValue('category', value === 'Custom' ? '' : value);
   };
 
   const onSubmit = (data: MenuItemFormData) => {
     if (item) {
       updateItem(item.id, data);
-      
-      // Update customization links if not a customization item
-      if (!data.isCustomizationCategory) {
-        // Remove all existing links
-        itemCustomizations.forEach(c => {
-          unlinkMenuItemCustomization(item.id, c.id);
-        });
-        
-        // Add new links
-        if (allowCustomizations) {
-          selectedCustomizations.forEach(customizationId => {
-            linkMenuItemCustomization(item.id, customizationId);
-          });
-        }
-      }
-      
-      toast({
-        title: 'Menu Item Updated',
-        description: 'The menu item has been updated successfully.',
-      });
+      toast({ title: 'Menu Item Updated', description: 'Updated successfully.' });
     } else {
       const newItemId = Date.now().toString();
-      addItem({
-        name: data.name,
-        description: data.description,
-        price: data.price,
-        category: data.category,
-        parentCategory: data.parentCategory,
-        isCustomizationCategory: data.isCustomizationCategory,
-        imageUrl: data.imageUrl,
-        available: data.available,
-        branchId,
-      });
-      
-      // Link customizations if enabled
-      if (!data.isCustomizationCategory && allowCustomizations) {
-        selectedCustomizations.forEach(customizationId => {
-          linkMenuItemCustomization(newItemId, customizationId);
-        });
-      }
-      
-      toast({
-        title: 'Menu Item Added',
-        description: 'The menu item has been added successfully.',
-      });
+      addItem({ ...data, branchId });
+      toast({ title: 'Menu Item Added', description: 'Added successfully.' });
     }
     onOpenChange(false);
   };
 
-  const handleToggleCustomization = (customizationId: string, isChecked: boolean) => {
-    const newSelected = new Set(selectedCustomizations);
-    if (isChecked) {
-      newSelected.add(customizationId);
-    } else {
-      newSelected.delete(customizationId);
-    }
-    setSelectedCustomizations(newSelected);
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{item ? 'Edit Menu Item' : 'Add Menu Item'}</DialogTitle>
-          <DialogDescription>
-            {item ? 'Update the menu item details' : 'Add a new item to your menu'}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent
+        className="max-w-2xl w-full p-0 overflow-hidden rounded-2xl border border-orange-100 shadow-xl"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-white border-b border-slate-100 px-6 py-4">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-slate-800">
+              {item ? 'Edit Menu Item' : 'Add Menu Item'}
+            </DialogTitle>
+            <DialogDescription className="text-slate-500">
+              {item ? 'Update the menu item details' : 'Add a new item to your menu'}
+            </DialogDescription>
+          </DialogHeader>
+        </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="flex items-center space-x-2 p-3 bg-muted/50 rounded-lg">
+        {/* Scrollable Content */}
+        <div className="px-6 py-5 overflow-y-auto max-h-[75vh] scroll-smooth space-y-5">
+          {/* Customization toggle */}
+          <div className="flex items-center space-x-2 p-3 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl border border-orange-200">
             <Switch
               id="isCustomizationCategory"
               checked={isCustomizationCategory}
               onCheckedChange={(checked) => setValue('isCustomizationCategory', checked)}
             />
-            <Label htmlFor="isCustomizationCategory" className="cursor-pointer">
+            <Label htmlFor="isCustomizationCategory" className="cursor-pointer font-medium text-slate-700">
               This is a customization item (e.g., Topping, Size)
             </Label>
           </div>
 
+          {/* Name */}
           <div className="space-y-2">
-            <Label htmlFor="name">Item Name *</Label>
+            <Label htmlFor="name" className="font-semibold text-slate-700">Item Name *</Label>
             <Input {...register('name')} id="name" placeholder="e.g., Pearl, Large Size" />
-            {errors.name && (
-              <p className="text-sm text-destructive">{errors.name.message}</p>
-            )}
+            {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
           </div>
 
-          {isCustomizationCategory ? (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="customizationCategory">Customization Category *</Label>
-                <Select value={customizationCategoryType} onValueChange={handleCustomizationCategoryChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select customization category" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background">
-                    {CUSTOMIZATION_CATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {showCustomCustomizationCategory && (
-                  <div className="mt-2">
-                    <Input
-                      {...register('category')}
-                      id="category"
-                      placeholder="Enter custom customization category"
-                    />
-                  </div>
-                )}
-                {errors.category && (
-                  <p className="text-sm text-destructive">{errors.category.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="parentCategory">Parent Category *</Label>
-                <Select value={parentCategory} onValueChange={(value) => setValue('parentCategory', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select parent category" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background">
-                    {DEFAULT_CATEGORIES.filter(c => c !== 'Custom').map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.parentCategory && (
-                  <p className="text-sm text-destructive">{errors.parentCategory.message}</p>
-                )}
-              </div>
-            </>
-          ) : (
-            <div className="space-y-2">
-              <Label htmlFor="category">Category *</Label>
-            <Select value={categoryType} onValueChange={handleCategoryTypeChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a category" />
-              </SelectTrigger>
-              <SelectContent className="bg-background">
-                {DEFAULT_CATEGORIES.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {showCustomCategory && (
-              <div className="mt-2">
-                <Input
-                  {...register('category')}
-                  id="category"
-                  placeholder="Enter custom category name"
-                />
-              </div>
-            )}
-              {errors.category && (
-                <p className="text-sm text-destructive">{errors.category.message}</p>
-              )}
+          {/* Category pills */}
+          <div className="space-y-2">
+            <Label className="font-semibold text-slate-700">Category *</Label>
+            <div className="flex flex-wrap gap-2">
+              {DEFAULT_CATEGORIES.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => handleCategoryTypeChange(cat)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    categoryType === cat
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
             </div>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description *</Label>
-            <Textarea
-              {...register('description')}
-              id="description"
-              placeholder="Describe the dish..."
-              rows={3}
-            />
-            {errors.description && (
-              <p className="text-sm text-destructive">{errors.description.message}</p>
+            {showCustomCategory && (
+              <Input {...register('category')} placeholder="Enter custom category name" />
             )}
+            {errors.category && <p className="text-sm text-red-500">{errors.category.message}</p>}
           </div>
 
+          {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="price">Price ($) *</Label>
-            <Input
-              {...register('price')}
-              id="price"
-              type="number"
-              step="0.01"
-              placeholder="0.00"
-            />
-            {errors.price && (
-              <p className="text-sm text-destructive">{errors.price.message}</p>
-            )}
+            <Label htmlFor="description" className="font-semibold text-slate-700">Description *</Label>
+            <Textarea {...register('description')} id="description" placeholder="Describe the dish..." rows={3} />
+            {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}
           </div>
 
+          {/* Price */}
           <div className="space-y-2">
+            <Label htmlFor="price" className="font-semibold text-slate-700">Price ($) *</Label>
+            <Input {...register('price')} id="price" type="number" step="0.01" placeholder="0.00" />
+            {errors.price && <p className="text-sm text-red-500">{errors.price.message}</p>}
+          </div>
+
+          {/* Image */}
+          <div className="space-y-2">
+            <Label className="font-semibold text-slate-700">Product Image</Label>
             <ImageUpload
               value={watch('imageUrl')}
               onChange={(value) => setValue('imageUrl', value)}
@@ -390,62 +260,27 @@ export const MenuItemDialog = ({
             />
           </div>
 
-          {!isCustomizationCategory && categoryCustomizations.length > 0 && (
-            <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="allowCustomizations"
-                  checked={allowCustomizations}
-                  onCheckedChange={setAllowCustomizations}
-                />
-                <Label htmlFor="allowCustomizations" className="cursor-pointer font-semibold">
-                  Allow Customizations
-                </Label>
-              </div>
-              
-              {allowCustomizations && (
-                <div className="space-y-2 pl-2">
-                  <p className="text-sm text-muted-foreground">Select available customizations:</p>
-                  {categoryCustomizations.map((customization) => (
-                    <div key={customization.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`custom-${customization.id}`}
-                        checked={selectedCustomizations.has(customization.id)}
-                        onCheckedChange={(checked) =>
-                          handleToggleCustomization(customization.id, checked as boolean)
-                        }
-                      />
-                      <Label htmlFor={`custom-${customization.id}`} className="cursor-pointer">
-                        <div className="flex items-center gap-2">
-                          <span>{customization.name}</span>
-                          <Badge variant="secondary">+${customization.price.toFixed(2)}</Badge>
-                        </div>
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="available"
-              checked={available}
-              onCheckedChange={(checked) => setValue('available', checked)}
-            />
-            <Label htmlFor="available" className="cursor-pointer">
+          {/* Available */}
+          <div className="flex items-center gap-2 bg-slate-50 rounded-lg p-3">
+            <Switch id="available" checked={available} onCheckedChange={(checked) => setValue('available', checked)} />
+            <Label htmlFor="available" className="cursor-pointer font-medium text-slate-700">
               Available for order
             </Label>
           </div>
+        </div>
 
-          <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit">{item ? 'Update' : 'Add'} Item</Button>
-          </div>
-        </form>
+        {/* Footer */}
+        <div className="sticky bottom-0 bg-white border-t border-slate-100 px-6 py-4 flex justify-end gap-3">
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit(onSubmit)}
+            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg"
+          >
+            {item ? 'Update' : 'Add'} Item
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

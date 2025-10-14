@@ -83,10 +83,10 @@ export const OverviewDashboard = ({ userBranches, onBranchUpdate }: OverviewDash
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setRestaurantDialogOpen(true)}>
+          {/* <Button variant="outline" onClick={() => setRestaurantDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Create Restaurant
-          </Button>
+          </Button> */}
           <Button onClick={() => setBranchDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Create Branch

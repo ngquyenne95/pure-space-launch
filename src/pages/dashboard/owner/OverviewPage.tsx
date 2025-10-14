@@ -71,7 +71,7 @@ const OwnerOverviewPage = () => {
       <div className="flex justify-end">
         <Button onClick={handleChooseBrand}>
           <RefreshCcw className="h-4 w-4 mr-2" />
-          Choose Another Brand
+          Choose Another Restaurant
         </Button>
       </div>
       <OverviewDashboard

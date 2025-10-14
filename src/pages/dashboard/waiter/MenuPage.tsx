@@ -71,54 +71,75 @@ const MenuPage = () => {
         </Select>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filteredItems.map((item) => (
-          <Card key={item.id} className="overflow-hidden">
-            {item.imageUrl && (
-              <div className="aspect-video bg-muted">
-                <img 
-                  src={item.imageUrl} 
+          <Card
+            key={item.id}
+            className="overflow-hidden flex flex-col h-full transition-all hover:shadow-lg hover:-translate-y-1 duration-300"
+          >
+            {/* --- Fixed image height --- */}
+            <div className="h-[220px] w-full bg-muted flex items-center justify-center overflow-hidden">
+              {item.imageUrl ? (
+                <img
+                  src={item.imageUrl}
                   alt={item.name}
-                  className="w-full h-full object-cover"
+                  className="h-full w-full object-cover"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
+                    target.style.display = "none";
                   }}
                 />
+              ) : (
+                <span className="text-sm text-muted-foreground">No image</span>
+              )}
+            </div>
+
+            {/* --- Content --- */}
+            <CardContent className="flex flex-col justify-between flex-1 p-4">
+              <div className="flex flex-col flex-1">
+                <div className="flex justify-between items-start mb-1">
+                  <h3 className="font-semibold text-lg leading-tight">{item.name}</h3>
+                  <Badge
+                    className={`${item.available
+                        ? "bg-orange-500 hover:bg-orange-500 text-white"
+                        : "bg-gray-400 text-white"
+                      }`}
+                  >
+                    {item.available ? "Available" : "Unavailable"}
+                  </Badge>
+                </div>
+
+                {/* --- Description (fixed height) --- */}
+                <p className="text-sm text-muted-foreground mt-1 mb-2 min-h-[48px] line-clamp-2">
+                  {item.description}
+                </p>
+
+                {/* --- Price + Category --- */}
+                <div className="flex justify-between items-center mt-auto">
+                  <span className="font-semibold text-base">${item.price.toFixed(2)}</span>
+                  <Badge variant="outline" className="text-xs">
+                    {item.category}
+                  </Badge>
+                </div>
               </div>
-            )}
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-lg">{item.name}</CardTitle>
-                {item.available ? (
-                  <Badge>Available</Badge>
-                ) : (
-                  <Badge variant="destructive">Unavailable</Badge>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">{item.description}</p>
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-semibold">${item.price.toFixed(2)}</span>
-                <Badge variant="outline">{item.category}</Badge>
-              </div>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  className="flex-1"
+
+              {/* --- Buttons always equal height --- */}
+              <div className="flex gap-2 mt-4">
+                <Button
+                  variant="outline"
+                  className="flex-1 h-10"
                   onClick={() => handleViewItem(item.id)}
                 >
                   <Eye className="mr-2 h-4 w-4" />
                   View
                 </Button>
                 <Button
-                  variant={item.available ? 'destructive' : 'default'}
-                  className="flex-1"
+                  variant={item.available ? "destructive" : "default"}
+                  className="flex-1 h-10"
                   onClick={() => handleToggleAvailability(item.id)}
                 >
                   <AlertCircle className="mr-2 h-4 w-4" />
-                  {item.available ? 'Mark Out' : 'Mark In'}
+                  {item.available ? "Mark Out" : "Mark In"}
                 </Button>
               </div>
             </CardContent>

@@ -15,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { ImageUpload } from '@/components/ui/image-upload';
 import { useMenuStore, MenuItem } from '@/store/menuStore';
-import { useCustomizationStore } from '@/store/customizationStore';
+import { useMenuCustomizationStore } from '@/store/customizationStore';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
@@ -67,7 +67,7 @@ export const MenuItemDialog = ({
     getMenuItemCustomizations,
     linkMenuItemCustomization,
     unlinkMenuItemCustomization,
-  } = useCustomizationStore();
+  } = useMenuCustomizationStore();
 
   const [categoryType, setCategoryType] = useState<string>('');
   const [showCustomCategory, setShowCustomCategory] = useState(false);

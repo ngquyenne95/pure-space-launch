@@ -1,217 +1,221 @@
 import { create } from 'zustand';
 
-export interface Customization {
+// --------------------
+// TYPES
+// --------------------
+export interface CustomizationOption {
   id: string;
-  branchId: string;
   name: string;
   price: number;
-  createdAt: string;
 }
 
-export interface CategoryCustomization {
+export interface Customization {
   id: string;
-  categoryName: string;
-  customizationId: string;
+  name: string;
   branchId: string;
-}
-
-export interface MenuItemCustomization {
-  id: string;
-  menuItemId: string;
-  customizationId: string;
+  price: number;
+  options: CustomizationOption[];
 }
 
 export interface MenuItem {
   id: string;
-  branchId: string;
   name: string;
-  description: string;
   price: number;
-  category: string;
-  parentCategory?: string;
-  imageUrl?: string;
-  available: boolean;
-  customizations: Customization[]; // đồng bộ từ CustomizationStore
-  createdAt: string;
+  branchId: string;
 }
 
-interface MenuCustomizationState {
+export interface CategoryCustomization {
+  categoryName: string;
+  branchId: string;
+  customizationId: string;
+}
+
+export interface MenuItemCustomization {
+  menuItemId: string;
+  customizationId: string;
+}
+
+// --------------------
+// STATE INTERFACE
+// --------------------
+interface CustomizationState {
   customizations: Customization[];
+  menuItems: MenuItem[];
   categoryCustomizations: CategoryCustomization[];
   menuItemCustomizations: MenuItemCustomization[];
-  menuItems: MenuItem[];
 
-  // --- Customization CRUD ---
-  addCustomization: (customization: Omit<Customization, 'id' | 'createdAt'>) => void;
-  updateCustomization: (id: string, updates: Partial<Customization>) => void;
+  // CRUD cho Customization
+  addCustomization: (customization: Customization) => void;
+  updateCustomization: (id: string, update: Partial<Customization>) => void;
   deleteCustomization: (id: string) => void;
 
-  // --- Category & MenuItem link ---
-  linkCategoryCustomization: (categoryName: string, customizationId: string, branchId: string) => void;
-  unlinkCategoryCustomization: (categoryName: string, customizationId: string, branchId: string) => void;
+  // CRUD cho MenuItem
+  addMenuItem: (item: MenuItem) => void;
+  updateMenuItem: (id: string, update: Partial<MenuItem>) => void;
+  deleteMenuItem: (id: string) => void;
 
+  // Liên kết category - customization
+  linkCategoryCustomization: (categoryName: string, branchId: string, customizationId: string) => void;
+  unlinkCategoryCustomization: (categoryName: string, branchId: string, customizationId: string) => void;
+
+  // Liên kết menuItem - customization
   linkMenuItemCustomization: (menuItemId: string, customizationId: string) => void;
   unlinkMenuItemCustomization: (menuItemId: string, customizationId: string) => void;
 
-  // --- MenuItem CRUD ---
-  addMenuItem: (item: Omit<MenuItem, 'id' | 'createdAt' | 'customizations'>) => void;
-  updateMenuItem: (id: string, updates: Partial<MenuItem>) => void;
-  deleteMenuItem: (id: string) => void;
-
-  getMenuItemsByBranch: (branchId: string) => MenuItem[];
+  // Truy vấn dữ liệu
+  getCustomizationById: (id: string) => Customization | undefined;
   getMenuItemById: (id: string) => MenuItem | undefined;
+  getCustomizationsByBranch: (branchId: string) => Customization[];
+  getCategoryCustomizations: (categoryName: string, branchId: string) => Customization[];
+  getMenuItemCustomizations: (menuItemId: string) => Customization[];
 }
 
-// ---------- LocalStorage helpers ----------
-const STORAGE_KEYS = {
-  CUSTOMIZATIONS: 'customizations',
-  CATEGORY_CUSTOMIZATIONS: 'category_customizations',
-  MENUITEM_CUSTOMIZATIONS: 'menuitem_customizations',
-  MENU_ITEMS: 'menu_items',
-};
+// --------------------
+// STORE
+// --------------------
+export const useMenuCustomizationStore = create<CustomizationState>((set, get) => ({
+  customizations: JSON.parse(localStorage.getItem('customizations') || '[]'),
+  menuItems: JSON.parse(localStorage.getItem('menuItems') || '[]'),
+  categoryCustomizations: JSON.parse(localStorage.getItem('categoryCustomizations') || '[]'),
+  menuItemCustomizations: JSON.parse(localStorage.getItem('menuItemCustomizations') || '[]'),
 
-const load = <T>(key: string): T[] => {
-  const stored = localStorage.getItem(key);
-  return stored ? JSON.parse(stored) : [];
-};
+  // -------------------- CRUD Customization --------------------
+  addCustomization: (customization) =>
+    set((state) => {
+      const updated = [...state.customizations, customization];
+      localStorage.setItem('customizations', JSON.stringify(updated));
+      return { customizations: updated };
+    }),
 
-const save = <T>(key: string, data: T[]) => {
-  localStorage.setItem(key, JSON.stringify(data));
-};
+  updateCustomization: (id, update) =>
+    set((state) => {
+      const updated = state.customizations.map((c) =>
+        c.id === id ? { ...c, ...update } : c
+      );
+      localStorage.setItem('customizations', JSON.stringify(updated));
+      return { customizations: updated };
+    }),
 
-// ---------- Store ----------
-export const useCustomizationStore = create<MenuCustomizationState>((set, get) => ({
-  customizations: load<Customization>(STORAGE_KEYS.CUSTOMIZATIONS),
-  categoryCustomizations: load<CategoryCustomization>(STORAGE_KEYS.CATEGORY_CUSTOMIZATIONS),
-  menuItemCustomizations: load<MenuItemCustomization>(STORAGE_KEYS.MENUITEM_CUSTOMIZATIONS),
-  menuItems: load<MenuItem>(STORAGE_KEYS.MENU_ITEMS),
+  deleteCustomization: (id) =>
+    set((state) => {
+      const updated = state.customizations.filter((c) => c.id !== id);
+      localStorage.setItem('customizations', JSON.stringify(updated));
+      return { customizations: updated };
+    }),
 
-  // --- Customization CRUD ---
-  addCustomization: (customization) => {
-    const newCust: Customization = { ...customization, id: Date.now().toString(), createdAt: new Date().toISOString() };
-    const customizations = [...get().customizations, newCust];
-    save(STORAGE_KEYS.CUSTOMIZATIONS, customizations);
-    set({ customizations });
+  // -------------------- CRUD MenuItem --------------------
+  addMenuItem: (item) =>
+    set((state) => {
+      const updated = [...state.menuItems, item];
+      localStorage.setItem('menuItems', JSON.stringify(updated));
+      return { menuItems: updated };
+    }),
+
+  updateMenuItem: (id, update) =>
+    set((state) => {
+      const updated = state.menuItems.map((m) =>
+        m.id === id ? { ...m, ...update } : m
+      );
+      localStorage.setItem('menuItems', JSON.stringify(updated));
+      return { menuItems: updated };
+    }),
+
+  deleteMenuItem: (id) =>
+    set((state) => {
+      const updated = state.menuItems.filter((m) => m.id !== id);
+      localStorage.setItem('menuItems', JSON.stringify(updated));
+      return { menuItems: updated };
+    }),
+
+  // -------------------- Liên kết Category ↔ Customization --------------------
+  linkCategoryCustomization: (categoryName, branchId, customizationId) =>
+    set((state) => {
+      const exists = state.categoryCustomizations.some(
+        (link) =>
+          link.categoryName === categoryName &&
+          link.branchId === branchId &&
+          link.customizationId === customizationId
+      );
+      if (exists) return state;
+
+      const updated = [
+        ...state.categoryCustomizations,
+        { categoryName, branchId, customizationId },
+      ];
+      localStorage.setItem('categoryCustomizations', JSON.stringify(updated));
+      return { categoryCustomizations: updated };
+    }),
+
+  unlinkCategoryCustomization: (categoryName, branchId, customizationId) =>
+    set((state) => {
+      const updated = state.categoryCustomizations.filter(
+        (link) =>
+          !(
+            link.categoryName === categoryName &&
+            link.branchId === branchId &&
+            link.customizationId === customizationId
+          )
+      );
+      localStorage.setItem('categoryCustomizations', JSON.stringify(updated));
+      return { categoryCustomizations: updated };
+    }),
+
+  // -------------------- Liên kết MenuItem ↔ Customization --------------------
+  linkMenuItemCustomization: (menuItemId, customizationId) =>
+    set((state) => {
+      const exists = state.menuItemCustomizations.some(
+        (link) =>
+          link.menuItemId === menuItemId &&
+          link.customizationId === customizationId
+      );
+      if (exists) return state;
+
+      const updated = [
+        ...state.menuItemCustomizations,
+        { menuItemId, customizationId },
+      ];
+      localStorage.setItem('menuItemCustomizations', JSON.stringify(updated));
+      return { menuItemCustomizations: updated };
+    }),
+
+  unlinkMenuItemCustomization: (menuItemId, customizationId) =>
+    set((state) => {
+      const updated = state.menuItemCustomizations.filter(
+        (link) =>
+          !(
+            link.menuItemId === menuItemId &&
+            link.customizationId === customizationId
+          )
+      );
+      localStorage.setItem('menuItemCustomizations', JSON.stringify(updated));
+      return { menuItemCustomizations: updated };
+    }),
+
+  // -------------------- Truy vấn dữ liệu --------------------
+  getCustomizationById: (id) => get().customizations.find((c) => c.id === id),
+  getMenuItemById: (id) => get().menuItems.find((m) => m.id === id),
+
+  getCategoryCustomizations: (categoryName, branchId) => {
+    const { categoryCustomizations, customizations } = get();
+    const links = categoryCustomizations.filter(
+      (l) => l.categoryName === categoryName && l.branchId === branchId
+    );
+    return links
+      .map((link) => customizations.find((c) => c.id === link.customizationId))
+      .filter((c): c is Customization => Boolean(c));
   },
 
-  updateCustomization: (id, updates) => {
-    const customizations = get().customizations.map(c => c.id === id ? { ...c, ...updates } : c);
-    save(STORAGE_KEYS.CUSTOMIZATIONS, customizations);
-
-    // Đồng bộ menuItems liên quan
-    const menuItems = get().menuItems.map(item => ({
-      ...item,
-      customizations: item.customizations.map(c => c.id === id ? { ...c, ...updates } : c)
-    }));
-    save(STORAGE_KEYS.MENU_ITEMS, menuItems);
-
-    set({ customizations, menuItems });
+  getMenuItemCustomizations: (menuItemId) => {
+    const { menuItemCustomizations, customizations } = get();
+    const links = menuItemCustomizations.filter(
+      (l) => l.menuItemId === menuItemId
+    );
+    return links
+      .map((link) => customizations.find((c) => c.id === link.customizationId))
+      .filter((c): c is Customization => Boolean(c));
   },
 
-  deleteCustomization: (id) => {
-    const customizations = get().customizations.filter(c => c.id !== id);
-    save(STORAGE_KEYS.CUSTOMIZATIONS, customizations);
-
-    // Xóa trong category link
-    const categoryCustomizations = get().categoryCustomizations.filter(l => l.customizationId !== id);
-    save(STORAGE_KEYS.CATEGORY_CUSTOMIZATIONS, categoryCustomizations);
-
-    // Xóa trong menuItem link
-    const menuItemCustomizations = get().menuItemCustomizations.filter(l => l.customizationId !== id);
-    save(STORAGE_KEYS.MENUITEM_CUSTOMIZATIONS, menuItemCustomizations);
-
-    // Xóa trong menuItems
-    const menuItems = get().menuItems.map(item => ({
-      ...item,
-      customizations: item.customizations.filter(c => c.id !== id)
-    }));
-    save(STORAGE_KEYS.MENU_ITEMS, menuItems);
-
-    set({ customizations, categoryCustomizations, menuItemCustomizations, menuItems });
+  getCustomizationsByBranch: (branchId) => {
+    return get().customizations.filter((c) => c.branchId === branchId);
   },
-
-  // --- Category link ---
-  linkCategoryCustomization: (categoryName, customizationId, branchId) => {
-    const exists = get().categoryCustomizations.find(l => l.categoryName === categoryName && l.customizationId === customizationId && l.branchId === branchId);
-    if (!exists) {
-      const newLink: CategoryCustomization = { id: Date.now().toString(), categoryName, customizationId, branchId };
-      const categoryCustomizations = [...get().categoryCustomizations, newLink];
-      save(STORAGE_KEYS.CATEGORY_CUSTOMIZATIONS, categoryCustomizations);
-      set({ categoryCustomizations });
-    }
-  },
-
-  unlinkCategoryCustomization: (categoryName, customizationId, branchId) => {
-    const categoryCustomizations = get().categoryCustomizations.filter(l => !(l.categoryName === categoryName && l.customizationId === customizationId && l.branchId === branchId));
-    save(STORAGE_KEYS.CATEGORY_CUSTOMIZATIONS, categoryCustomizations);
-    set({ categoryCustomizations });
-  },
-
-  // --- MenuItem link ---
-  linkMenuItemCustomization: (menuItemId, customizationId) => {
-    const exists = get().menuItemCustomizations.find(l => l.menuItemId === menuItemId && l.customizationId === customizationId);
-    if (!exists) {
-      const newLink: MenuItemCustomization = { id: Date.now().toString(), menuItemId, customizationId };
-      const menuItemCustomizations = [...get().menuItemCustomizations, newLink];
-      save(STORAGE_KEYS.MENUITEM_CUSTOMIZATIONS, menuItemCustomizations);
-
-      // Đồng bộ vào menuItem.customizations
-      const cust = get().customizations.find(c => c.id === customizationId);
-      if (cust) {
-        const menuItems = get().menuItems.map(item => {
-          if (item.id === menuItemId) {
-            return { ...item, customizations: [...item.customizations, cust] };
-          }
-          return item;
-        });
-        save(STORAGE_KEYS.MENU_ITEMS, menuItems);
-        set({ menuItems });
-      }
-
-      set({ menuItemCustomizations });
-    }
-  },
-
-  unlinkMenuItemCustomization: (menuItemId, customizationId) => {
-    const menuItemCustomizations = get().menuItemCustomizations.filter(l => !(l.menuItemId === menuItemId && l.customizationId === customizationId));
-    save(STORAGE_KEYS.MENUITEM_CUSTOMIZATIONS, menuItemCustomizations);
-
-    // Đồng bộ xóa trong menuItem.customizations
-    const menuItems = get().menuItems.map(item => ({
-      ...item,
-      customizations: item.customizations.filter(c => !(c.id === customizationId))
-    }));
-    save(STORAGE_KEYS.MENU_ITEMS, menuItems);
-
-    set({ menuItemCustomizations, menuItems });
-  },
-
-  // --- MenuItem CRUD ---
-  addMenuItem: (item) => {
-    const newItem: MenuItem = { ...item, id: Date.now().toString(), createdAt: new Date().toISOString(), customizations: [] };
-    const menuItems = [...get().menuItems, newItem];
-    save(STORAGE_KEYS.MENU_ITEMS, menuItems);
-    set({ menuItems });
-  },
-
-  updateMenuItem: (id, updates) => {
-    const menuItems = get().menuItems.map(item => item.id === id ? { ...item, ...updates } : item);
-    save(STORAGE_KEYS.MENU_ITEMS, menuItems);
-    set({ menuItems });
-  },
-
-  deleteMenuItem: (id) => {
-    const menuItems = get().menuItems.filter(item => item.id !== id);
-    save(STORAGE_KEYS.MENU_ITEMS, menuItems);
-
-    // Xóa liên kết menuItemCustomizations
-    const menuItemCustomizations = get().menuItemCustomizations.filter(l => l.menuItemId !== id);
-    save(STORAGE_KEYS.MENUITEM_CUSTOMIZATIONS, menuItemCustomizations);
-
-    set({ menuItems, menuItemCustomizations });
-  },
-
-  getMenuItemsByBranch: (branchId) => get().menuItems.filter(item => item.branchId === branchId),
-
-  getMenuItemById: (id) => get().menuItems.find(item => item.id === id),
 }));

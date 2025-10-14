@@ -1,12 +1,12 @@
 import { useState, useRef } from 'react';
-import { 
-  Card, CardContent, CardDescription, CardHeader, CardTitle 
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, Eye, ChevronRight, Settings } from 'lucide-react';
 import { useMenuStore, MenuItem } from '@/store/menuStore';
-import { useCustomizationStore } from '@/store/customizationStore';
+import { useMenuCustomizationStore } from '@/store/customizationStore';
 import { MenuItemDialog } from './MenuItemDialog';
 import { MenuItemViewDialog } from './MenuItemViewDialog';
 import { CategoryManagementDialog } from '@/components/owner/CategoryManagementDialog';
@@ -30,8 +30,8 @@ export const MenuManagement = ({ branchId }: MenuManagementProps) => {
   const allItems = useMenuStore((state) => state.items);
   const items = allItems.filter((i) => i.branchId === branchId);
   const deleteItem = useMenuStore((state) => state.deleteItem);
-  const { getCategoryCustomizations } = useCustomizationStore();
-  
+  const { getCategoryCustomizations } = useMenuCustomizationStore();
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
@@ -237,12 +237,16 @@ export const MenuManagement = ({ branchId }: MenuManagementProps) => {
                   const itemCount = groupedItems[cat]?.length || 0;
                   const customizationCount = getCategoryCustomizationCount(cat);
                   const isActive = activeCategory === cat;
+
                   return (
                     <div key={cat} className="relative group">
-                      <button
+                      {/* ✅ Đã đổi từ <button> sang <div role="button"> */}
+                      <div
                         onClick={() => scrollToCategory(cat)}
-                        className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-between
-                          ${isActive
+                        role="button"
+                        tabIndex={0}
+                        className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-between cursor-pointer
+                    ${isActive
                             ? 'bg-primary text-primary-foreground shadow-md scale-105'
                             : 'hover:bg-muted hover:translate-x-1'
                           }`}
@@ -266,8 +270,8 @@ export const MenuManagement = ({ branchId }: MenuManagementProps) => {
                               {itemCount} {itemCount === 1 ? 'item' : 'items'}
                             </span>
                             {customizationCount > 0 && (
-                              <Badge 
-                                variant="secondary" 
+                              <Badge
+                                variant="secondary"
                                 className="text-xs h-5 px-1.5"
                               >
                                 {customizationCount} custom
@@ -275,13 +279,15 @@ export const MenuManagement = ({ branchId }: MenuManagementProps) => {
                             )}
                           </div>
                         </div>
+
                         <div className="flex items-center gap-1">
                           <Button
                             size="icon"
                             variant="ghost"
-                            className={`h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity ${
-                              isActive ? 'text-primary-foreground hover:bg-primary-foreground/20' : ''
-                            }`}
+                            className={`h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity ${isActive
+                              ? 'text-primary-foreground hover:bg-primary-foreground/20'
+                              : ''
+                              }`}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleManageCategory(cat);
@@ -291,7 +297,7 @@ export const MenuManagement = ({ branchId }: MenuManagementProps) => {
                           </Button>
                           <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
                         </div>
-                      </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -304,6 +310,7 @@ export const MenuManagement = ({ branchId }: MenuManagementProps) => {
           </CardContent>
         </Card>
       </aside>
+
 
       {/* === DIALOGS === */}
       <MenuItemDialog

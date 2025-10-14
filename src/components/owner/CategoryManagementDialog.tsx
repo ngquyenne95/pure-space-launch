@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useCustomizationStore, Customization } from '@/store/customizationStore';
+import { useMenuCustomizationStore, Customization } from '@/store/customizationStore';
 import { toast } from '@/hooks/use-toast';
 import { Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -35,7 +35,7 @@ export const CategoryManagementDialog = ({
     linkCategoryCustomization,
     unlinkCategoryCustomization,
     addCustomization,
-  } = useCustomizationStore();
+  } = useMenuCustomizationStore();
 
   const [selectedCustomizations, setSelectedCustomizations] = useState<Set<string>>(new Set());
   const [showAddCustomization, setShowAddCustomization] = useState(false);
@@ -76,9 +76,11 @@ export const CategoryManagementDialog = ({
 
     const price = parseFloat(newCustomizationPrice) || 0;
     addCustomization({
+      id: crypto.randomUUID(),
       name: newCustomizationName.trim(),
       price,
       branchId,
+      options: [],
     });
 
     toast({

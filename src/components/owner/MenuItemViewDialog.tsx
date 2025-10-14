@@ -71,18 +71,9 @@ export const MenuItemViewDialog = ({
                 <h4 className="font-semibold mb-3">Customizations</h4>
                 <div className="space-y-3">
                   {item.customizations.map((custom) => (
-                    <div key={custom.id} className="border rounded-lg p-3">
-                      <h5 className="font-medium mb-2">{custom.name}</h5>
-                      <div className="space-y-1">
-                        {custom.options.map((option, idx) => (
-                          <div key={idx} className="flex justify-between text-sm">
-                            <span>{option.name}</span>
-                            <span className="text-muted-foreground">
-                              +${option.price.toFixed(2)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
+                    <div key={custom.id} className="border rounded-lg p-3 flex justify-between">
+                      <span className="font-medium">{custom.name}</span>
+                      <span className="text-muted-foreground">+${custom.price.toFixed(2)}</span>
                     </div>
                   ))}
                 </div>

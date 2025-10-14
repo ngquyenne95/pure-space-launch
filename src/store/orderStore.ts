@@ -1,4 +1,7 @@
 import { create } from 'zustand';
+import { useMenuStore } from '@/store/menuStore'; // ✅ chỉ còn 1 store duy nhất
+
+// ==== INTERFACES ==== //
 
 export interface OrderItemCustomization {
   id: string; // order_item_customization_id
@@ -43,46 +46,61 @@ interface OrderState {
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
   getOrdersByTable: (tableId: string) => Order[];
   getPendingOrders: (tableId?: string) => Order[];
+  markOrderAsBilled: (orderId: string) => void;
 }
 
+// ==== STORAGE ==== //
+
 const STORAGE_KEY = 'mock_orders';
-const saveOrders = (orders: Order[]) => localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+const saveOrders = (orders: Order[]) =>
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
 const loadOrders = (): Order[] => {
   const stored = localStorage.getItem(STORAGE_KEY);
   return stored ? JSON.parse(stored) : [];
 };
 
+// ==== STORE IMPLEMENTATION ==== //
+
 export const useOrderStore = create<OrderState>((set, get) => ({
   orders: loadOrders(),
 
+  // === 1. ADD ORDER ===
   addOrder: (orderData) => {
-    const menuStore = useMenuCustomizationStore.getState();
+    const { getMenuItemById } = useMenuStore.getState();
 
-    // Map items từ menu để tính totalPrice và customizations
-    const mappedLines: OrderLine[] = orderData.orderLines.map(line => {
-      const mappedItems: OrderItem[] = line.items.map(item => {
-        const menuItem = menuStore.getMenuItemById(item.menuItemId);
+    const mappedLines: OrderLine[] = orderData.orderLines.map((line) => {
+      const mappedItems: OrderItem[] = line.items.map((item) => {
+        const menuItem = getMenuItemById(item.menuItemId);
         if (!menuItem) throw new Error(`MenuItem ${item.menuItemId} not found`);
 
-        const mappedCustomizations: OrderItemCustomization[] = (item.customizations || []).map(cust => {
-          const menuCust = menuItem.customizations.find(mc => mc.id === cust.customizationId);
-          if (!menuCust) throw new Error(`Customization ${cust.customizationId} not found`);
-          return {
-            id: Date.now().toString() + Math.random().toString(36).substring(2),
-            customizationId: menuCust.id,
-            name: menuCust.name,
-            quantity: cust.quantity,
-            totalPrice: menuCust.price * cust.quantity
-          };
-        });
+        // ✅ map customizations theo menuItem
+        const mappedCustomizations: OrderItemCustomization[] = (item.customizations || []).map(
+          (cust) => {
+            const menuCust = menuItem.customizations?.find(
+              (mc) => mc.id === cust.customizationId
+            );
+            if (!menuCust)
+              throw new Error(`Customization ${cust.customizationId} not found`);
+            return {
+              id: Date.now().toString() + Math.random().toString(36).substring(2),
+              customizationId: menuCust.id,
+              name: menuCust.name,
+              quantity: cust.quantity,
+              totalPrice: (menuCust.price ?? 0) * cust.quantity,
+            };
+          }
+        );
 
-        const totalPrice = menuItem.price * item.quantity + mappedCustomizations.reduce((sum, c) => sum + c.totalPrice, 0);
+        const totalPrice =
+          (menuItem.price ?? 0) * item.quantity +
+          mappedCustomizations.reduce((sum, c) => sum + c.totalPrice, 0);
+
         return {
           ...item,
-          id: Date.now().toString() + Math.random().toString(36).substring(2),
+          id: `${Date.now()}-${Math.random().toString(36).substring(2)}`,
           name: menuItem.name,
           totalPrice,
-          customizations: mappedCustomizations
+          customizations: mappedCustomizations,
         };
       });
 
@@ -90,12 +108,13 @@ export const useOrderStore = create<OrderState>((set, get) => ({
         ...line,
         id: `${Date.now()}-${Math.random().toString(36).substring(2)}`,
         createdAt: new Date().toISOString(),
-        items: mappedItems
+        items: mappedItems,
       };
     });
 
     const totalPrice = mappedLines.reduce(
-      (sum, line) => sum + line.items.reduce((itemSum, i) => itemSum + i.totalPrice, 0),
+      (sum, line) =>
+        sum + line.items.reduce((itemSum, i) => itemSum + i.totalPrice, 0),
       0
     );
 
@@ -104,7 +123,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       id: Date.now().toString(),
       createdAt: new Date().toISOString(),
       totalPrice,
-      orderLines: mappedLines
+      orderLines: mappedLines,
     };
 
     const updated = [newOrder, ...get().orders];
@@ -112,32 +131,41 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     set({ orders: updated });
   },
 
+  // === 2. ADD ORDER LINE ===
   addOrderLine: (orderId, lineData) => {
-    const menuStore = useMenuCustomizationStore.getState();
+    const { getMenuItemById } = useMenuStore.getState();
 
-    const mappedItems: OrderItem[] = lineData.items.map(item => {
-      const menuItem = menuStore.getMenuItemById(item.menuItemId);
+    const mappedItems: OrderItem[] = lineData.items.map((item) => {
+      const menuItem = getMenuItemById(item.menuItemId);
       if (!menuItem) throw new Error(`MenuItem ${item.menuItemId} not found`);
 
-      const mappedCustomizations: OrderItemCustomization[] = (item.customizations || []).map(cust => {
-        const menuCust = menuItem.customizations.find(mc => mc.id === cust.customizationId);
-        if (!menuCust) throw new Error(`Customization ${cust.customizationId} not found`);
-        return {
-          id: Date.now().toString() + Math.random().toString(36).substring(2),
-          customizationId: menuCust.id,
-          name: menuCust.name,
-          quantity: cust.quantity,
-          totalPrice: menuCust.price * cust.quantity
-        };
-      });
+      const mappedCustomizations: OrderItemCustomization[] = (item.customizations || []).map(
+        (cust) => {
+          const menuCust = menuItem.customizations?.find(
+            (mc) => mc.id === cust.customizationId
+          );
+          if (!menuCust)
+            throw new Error(`Customization ${cust.customizationId} not found`);
+          return {
+            id: Date.now().toString() + Math.random().toString(36).substring(2),
+            customizationId: menuCust.id,
+            name: menuCust.name,
+            quantity: cust.quantity,
+            totalPrice: (menuCust.price ?? 0) * cust.quantity,
+          };
+        }
+      );
 
-      const totalPrice = menuItem.price * item.quantity + mappedCustomizations.reduce((sum, c) => sum + c.totalPrice, 0);
+      const totalPrice =
+        (menuItem.price ?? 0) * item.quantity +
+        mappedCustomizations.reduce((sum, c) => sum + c.totalPrice, 0);
+
       return {
         ...item,
         id: Date.now().toString() + Math.random().toString(36).substring(2),
         name: menuItem.name,
         totalPrice,
-        customizations: mappedCustomizations
+        customizations: mappedCustomizations,
       };
     });
 
@@ -145,10 +173,10 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       ...lineData,
       id: `${orderId}-line-${Date.now()}`,
       createdAt: new Date().toISOString(),
-      items: mappedItems
+      items: mappedItems,
     };
 
-    const updated = get().orders.map(o => {
+    const updated = get().orders.map((o) => {
       if (o.id === orderId) {
         const newTotal = o.totalPrice + mappedItems.reduce((sum, i) => sum + i.totalPrice, 0);
         return { ...o, orderLines: [...o.orderLines, newLine], totalPrice: newTotal };
@@ -160,12 +188,29 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     set({ orders: updated });
   },
 
+  // === 3. UPDATE ORDER STATUS ===
   updateOrderStatus: (orderId, status) => {
-    const updated = get().orders.map(o => (o.id === orderId ? { ...o, status } : o));
+    const updated = get().orders.map((o) =>
+      o.id === orderId ? { ...o, status } : o
+    );
     saveOrders(updated);
     set({ orders: updated });
   },
 
-  getOrdersByTable: (tableId) => get().orders.filter(o => o.areaTableId === tableId),
-  getPendingOrders: (tableId) => get().orders.filter(o => o.status === 'pending' && (tableId ? o.areaTableId === tableId : true))
+  // === 4. GETTERS ===
+  getOrdersByTable: (tableId) =>
+    get().orders.filter((o) => o.areaTableId === tableId),
+  getPendingOrders: (tableId) =>
+    get().orders.filter(
+      (o) => o.status === 'pending' && (!tableId || o.areaTableId === tableId)
+    ),
+
+  // === 5. MARK AS BILLED ===
+  markOrderAsBilled: (orderId: string) => {
+    const updated: Order[] = get().orders.map((o) =>
+      o.id === orderId ? { ...o, status: 'completed' } : o
+    );
+    saveOrders(updated);
+    set({ orders: updated });
+  },
 }));

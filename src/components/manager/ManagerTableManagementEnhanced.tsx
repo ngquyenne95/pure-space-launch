@@ -40,10 +40,24 @@ export const ManagerTableManagementEnhanced = ({ branchId }: ManagerTableManagem
   const [selectedTable, setSelectedTable] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [reservationIndex, setReservationIndex] = useState(0);
-  
+
+  const [isAddTableOpen, setIsAddTableOpen] = useState(false);
+  const [isAreaDialogOpen, setIsAreaDialogOpen] = useState(false);
+  const [isQRDialogOpen, setIsQRDialogOpen] = useState(false);
+  const [qrTable, setQrTable] = useState<any>(null);
+
+  const [areaName, setAreaName] = useState('');
+  const [areaFloor, setAreaFloor] = useState<number>(1);
+
+  const [initialTableCount, setInitialTableCount] = useState<number>(0);
+
   const floorMap = getTablesByBranchAndFloor(branchId);
   const tables = Array.from(floorMap.values()).flat();
   const areas = getAreasByBranch(branchId);
+
+  const branches = JSON.parse(localStorage.getItem('mock_branches') || '[]');
+  const branch = branches.find((b: any) => b.id === branchId);
+  const branchShortCode = branch?.shortCode || branchId;
 
   const handleStatusChange = (tableId: string, newStatus: TableStatus) => {
     updateTableStatus(tableId, newStatus);

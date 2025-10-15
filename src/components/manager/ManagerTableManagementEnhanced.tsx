@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Table2, Eye, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Table2, Eye, Settings, ChevronLeft, ChevronRight, Plus, QrCode } from 'lucide-react';
 import { useTableStore, TableStatus } from '@/store/tableStore';
 import { useAreaStore } from '@/store/areaStore';
 import { useReservationStore } from '@/store/reservationStore';
 import { toast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -22,6 +23,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { TableDialog } from '@/components/owner/TableDialog';
+import { TableQRDialog } from '@/components/owner/TableQRDialog';
+import { QRCodeSVG } from 'qrcode.react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -36,10 +40,24 @@ export const ManagerTableManagementEnhanced = ({ branchId }: ManagerTableManagem
   const [selectedTable, setSelectedTable] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [reservationIndex, setReservationIndex] = useState(0);
-  
+
+  const [isAddTableOpen, setIsAddTableOpen] = useState(false);
+  const [isAreaDialogOpen, setIsAreaDialogOpen] = useState(false);
+  const [isQRDialogOpen, setIsQRDialogOpen] = useState(false);
+  const [qrTable, setQrTable] = useState<any>(null);
+
+  const [areaName, setAreaName] = useState('');
+  const [areaFloor, setAreaFloor] = useState<number>(1);
+
+  const [initialTableCount, setInitialTableCount] = useState<number>(0);
+
   const floorMap = getTablesByBranchAndFloor(branchId);
   const tables = Array.from(floorMap.values()).flat();
   const areas = getAreasByBranch(branchId);
+
+  const branches = JSON.parse(localStorage.getItem('mock_branches') || '[]');
+  const branch = branches.find((b: any) => b.id === branchId);
+  const branchShortCode = branch?.shortCode || branchId;
 
   const handleStatusChange = (tableId: string, newStatus: TableStatus) => {
     updateTableStatus(tableId, newStatus);
@@ -102,6 +120,23 @@ export const ManagerTableManagementEnhanced = ({ branchId }: ManagerTableManagem
   return (
     <>
       <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div />
+          <div className="flex gap-2">
+            <Button onClick={() => setIsAreaDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Area
+            </Button>
+            <Button onClick={() => { setInitialTableCount(tables.length); setIsAddTableOpen(true); }}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Table
+            </Button>
+            <Button variant="outline" onClick={() => setIsQRDialogOpen(true)}>
+              <QrCode className="mr-2 h-4 w-4" />
+              Branch QR
+            </Button>
+          </div>
+        </div>
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -296,7 +331,7 @@ export const ManagerTableManagementEnhanced = ({ branchId }: ManagerTableManagem
                   <p className="text-sm text-muted-foreground mb-2">QR Code URL</p>
                   <div className="flex gap-2">
                     <Input 
-                      value={`${window.location.origin}/menu/${selectedTable.branchId}/${selectedTable.id}`}
+                      value={`${window.location.origin}/branch/${branchShortCode}/table/${selectedTable.id}`}
                       readOnly
                       className="font-mono text-xs"
                     />
@@ -304,7 +339,7 @@ export const ManagerTableManagementEnhanced = ({ branchId }: ManagerTableManagem
                       size="sm"
                       variant="outline"
                       onClick={() => {
-                        navigator.clipboard.writeText(`${window.location.origin}/menu/${selectedTable.branchId}/${selectedTable.id}`);
+                        navigator.clipboard.writeText(`${window.location.origin}/branch/${branchShortCode}/table/${selectedTable.id}`);
                         toast({ title: 'Copied!', description: 'URL copied to clipboard' });
                       }}
                     >
@@ -388,6 +423,82 @@ export const ManagerTableManagementEnhanced = ({ branchId }: ManagerTableManagem
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Table Dialog (reusing owner TableDialog) */}
+      <TableDialog
+        open={isAddTableOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            const allTables = useTableStore.getState().getTablesByBranch(branchId);
+            if (allTables.length > initialTableCount) {
+              const latest = allTables.reduce((a, b) => (a.id > b.id ? a : b));
+              setQrTable(latest);
+              setIsQRDialogOpen(true);
+            }
+          }
+          setIsAddTableOpen(open);
+        }}
+        branchId={branchId}
+      />
+
+      {/* Table QR Dialog */}
+      <TableQRDialog
+        open={isQRDialogOpen && !!qrTable}
+        onOpenChange={(open) => {
+          setIsQRDialogOpen(open);
+          if (!open) setQrTable(null);
+        }}
+        table={qrTable}
+      />
+
+      {/* Add Area Dialog */}
+      <Dialog open={isAreaDialogOpen} onOpenChange={setIsAreaDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Area</DialogTitle>
+            <DialogDescription>Create a new area/floor for this branch</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="areaName">Area Name</Label>
+              <Input id="areaName" value={areaName} onChange={(e) => setAreaName(e.target.value)} placeholder="e.g. Patio" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="areaFloor">Floor Number</Label>
+              <Input id="areaFloor" type="number" min={1} value={areaFloor} onChange={(e) => setAreaFloor(parseInt(e.target.value || '1', 10))} />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setIsAreaDialogOpen(false)}>Cancel</Button>
+              <Button onClick={() => {
+                if (!areaFloor) return;
+                useAreaStore.getState().addArea({ branchId, name: areaName || `Area ${areaFloor}`, floor: areaFloor, status: 'active' });
+                toast({ title: 'Area added', description: 'New area has been created.' });
+                setAreaName('');
+                setAreaFloor(1);
+                setIsAreaDialogOpen(false);
+              }}>Add Area</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Branch QR Dialog */}
+      <Dialog open={isQRDialogOpen && !qrTable} onOpenChange={(open) => setIsQRDialogOpen(open)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Branch QR Code</DialogTitle>
+            <DialogDescription>Scan to open the branch page</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-4">
+            <div className="bg-white p-6 rounded-lg border-2 border-border">
+              <QRCodeSVG value={`${window.location.origin}/branch/${branchShortCode}`} size={200} />
+            </div>
+            <div className="text-sm font-mono select-all break-all">
+              {`${window.location.origin}/branch/${branchShortCode}`}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </>

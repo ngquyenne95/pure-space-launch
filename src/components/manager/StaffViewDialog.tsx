@@ -7,10 +7,13 @@ import { Mail, Phone, MapPin, Calendar, Pencil, Trash2 } from 'lucide-react';
 interface Staff {
   id: string;
   name: string;
-  email: string;
-  phone: string;
+  email?: string;
+  phone?: string;
   role: string;
   status: string;
+  username?: string;
+  branchId?: string;
+  createdAt?: string;
   avatar?: string;
   address?: string;
   joinDate?: string;
@@ -24,13 +27,20 @@ interface StaffViewDialogProps {
   onDelete?: (staffId: string) => void;
 }
 
-export const StaffViewDialog = ({ 
-  open, 
-  onOpenChange, 
+export const StaffViewDialog = ({
+  open,
+  onOpenChange,
   staff,
   onEdit,
   onDelete
 }: StaffViewDialogProps) => {
+  const branches = JSON.parse(localStorage.getItem('mock_branches') || '[]');
+  const getBranchLabel = (branchId?: string) => {
+    if (!branchId) return '';
+    const b = branches.find((br: any) => br.id === branchId);
+    if (!b) return branchId;
+    return b.shortCode ? `${b.name} (${b.shortCode})` : b.name;
+  };
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
       case 'waiter':
@@ -110,14 +120,40 @@ export const StaffViewDialog = ({
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Mail className="h-4 w-4" />
-                          <span>{member.email}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Phone className="h-4 w-4" />
-                          <span>{member.phone}</span>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                        {member.email && (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Mail className="h-4 w-4" />
+                            <span>{member.email}</span>
+                          </div>
+                        )}
+                        {member.phone && (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Phone className="h-4 w-4" />
+                            <span>{member.phone}</span>
+                          </div>
+                        )}
+                        {member.username && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">Username:</span>
+                            <span className="font-mono">{member.username}</span>
+                          </div>
+                        )}
+                        {member.branchId && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">Branch:</span>
+                            <span>{getBranchLabel(member.branchId)}</span>
+                          </div>
+                        )}
+                        {member.createdAt && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">Created:</span>
+                            <span>{new Date(member.createdAt).toLocaleString()}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">ID:</span>
+                          <span className="font-mono">{member.id}</span>
                         </div>
                         {member.address && (
                           <div className="flex items-center gap-2 text-muted-foreground">

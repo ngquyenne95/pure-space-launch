@@ -66,10 +66,11 @@ export const ManualOrderDialog = ({ open, onOpenChange, branchId }: ManualOrderD
       
       // Check if this item has customizations available
       if (selectedItem && !selectedItem.isCustomizationCategory) {
-        const availableCustomizations = menuItems.filter(
+        const embedded = (selectedItem.customizations && selectedItem.customizations.length > 0);
+        const hasCategoryItems = menuItems.some(
           m => m.isCustomizationCategory && m.parentCategory === selectedItem.category && m.available
         );
-        if (availableCustomizations.length > 0) {
+        if (embedded || hasCategoryItems) {
           setSelectedLineIndex(index);
           setCustomizationDialogOpen(true);
         }
@@ -207,9 +208,27 @@ export const ManualOrderDialog = ({ open, onOpenChange, branchId }: ManualOrderD
     : null;
 
   const availableCustomizations = selectedLineItem && !selectedLineItem.isCustomizationCategory
-    ? menuItems.filter(
-        m => m.isCustomizationCategory && m.parentCategory === selectedLineItem.category && m.available
-      )
+    ? (() => {
+        // Prefer embedded customizations if present
+        if (selectedLineItem.customizations && selectedLineItem.customizations.length > 0) {
+          return selectedLineItem.customizations.map((c) => ({
+            id: c.id,
+            branchId: selectedLineItem.branchId,
+            name: c.name,
+            description: '',
+            price: c.price || 0,
+            category: 'Add-ons',
+            imageUrl: '',
+            available: true,
+            createdAt: new Date().toISOString(),
+            isCustomizationCategory: true,
+          } as MenuItem));
+        }
+        // Fallback to separate customization items by category
+        return menuItems.filter(
+          m => m.isCustomizationCategory && m.parentCategory === selectedLineItem.category && m.available
+        );
+      })()
     : [];
 
   return (

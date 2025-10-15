@@ -23,6 +23,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { TableDialog } from '@/components/owner/TableDialog';
+import { TableQRDialog } from '@/components/owner/TableQRDialog';
+import { QRCodeSVG } from 'qrcode.react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 

@@ -279,6 +279,14 @@ export const routes: RouteObject[] = [
     element: <StaffManagerLoginPage />,
   },
   {
+    path: '/profile',
+    element: (
+      <ProtectedRoute>
+        <Profile />
+      </ProtectedRoute>
+    ),
+  },
+  {
     path: '/restaurant-login',
     element: <RestaurantLoginPage />,
   },

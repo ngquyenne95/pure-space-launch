@@ -7,6 +7,7 @@ import { useTableStore, TableStatus } from '@/store/tableStore';
 import { useAreaStore } from '@/store/areaStore';
 import { useReservationStore } from '@/store/reservationStore';
 import { toast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -164,7 +165,7 @@ export const ManagerTableManagementEnhanced = ({ branchId }: ManagerTableManagem
                     )}>
                       <div className="flex items-center gap-3">
                         <div className="bg-primary/10 rounded-lg px-4 py-2 flex items-center gap-3">
-                          <h3 className="text-lg font-semibold text-primary">Floor {floor}</h3>
+                          <h3 className="text-lg font-semibold text-primary">Area {floor}</h3>
                           {area && (
                             <Select 
                               value={area.status} 
@@ -278,7 +279,7 @@ export const ManagerTableManagementEnhanced = ({ branchId }: ManagerTableManagem
                   <p className="font-semibold">{selectedTable.number}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Floor</p>
+                  <p className="text-sm text-muted-foreground">Area</p>
                   <p className="font-semibold">{selectedTable.floor}</p>
                 </div>
                 <div>
@@ -292,8 +293,24 @@ export const ManagerTableManagementEnhanced = ({ branchId }: ManagerTableManagem
                   </Badge>
                 </div>
                 <div className="col-span-2">
-                  <p className="text-sm text-muted-foreground">QR Code</p>
-                  <p className="font-mono text-xs">{selectedTable.qrCode}</p>
+                  <p className="text-sm text-muted-foreground mb-2">QR Code URL</p>
+                  <div className="flex gap-2">
+                    <Input 
+                      value={`${window.location.origin}/menu/${selectedTable.branchId}/${selectedTable.id}`}
+                      readOnly
+                      className="font-mono text-xs"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/menu/${selectedTable.branchId}/${selectedTable.id}`);
+                        toast({ title: 'Copied!', description: 'URL copied to clipboard' });
+                      }}
+                    >
+                      Copy
+                    </Button>
+                  </div>
                 </div>
               </div>
 

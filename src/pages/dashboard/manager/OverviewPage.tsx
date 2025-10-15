@@ -220,8 +220,8 @@ export default function OverviewPage() {
               <span className="text-lg font-bold">$67.88</span>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-              <span className="text-sm font-medium">Customer Satisfaction</span>
-              <span className="text-lg font-bold">4.8/5.0</span>
+              <span className="text-sm font-medium">Total Menu Items Sold</span>
+              <span className="text-lg font-bold">342</span>
             </div>
           </CardContent>
         </Card>

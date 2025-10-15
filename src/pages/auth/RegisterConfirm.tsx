@@ -14,8 +14,10 @@ import { useAuthStore } from '@/store/authStore';
 import { Check, Building2 } from 'lucide-react';
 
 const brandSchema = z.object({
-  name: z.string().trim().min(1, 'Brand name is required').max(100, 'Brand name must be less than 100 characters'),
+  name: z.string().trim().min(1, 'Restaurant name is required').max(100, 'Restaurant name must be less than 100 characters'),
   description: z.string().max(500, 'Description must be less than 500 characters').optional(),
+  email: z.string().email('Invalid email address').optional(),
+  phone: z.string().min(10, 'Phone number must be at least 10 digits').optional(),
 });
 
 type BrandFormData = z.infer<typeof brandSchema>;
@@ -55,12 +57,14 @@ const RegisterConfirm = () => {
 
     setSubmitting(true);
     try {
-      // Create brand
+      // Create restaurant
       const brandId = `brand_${Date.now()}`;
       const newBrand = {
         id: brandId,
         name: data.name,
         description: data.description || '',
+        email: data.email || '',
+        phone: data.phone || '',
         ownerId: user.id,
         packageType: packageId,
         totalBranches: 0,
@@ -78,7 +82,7 @@ const RegisterConfirm = () => {
       localStorage.setItem('selected_brand', data.name);
 
       toast({
-        title: 'Brand created successfully!',
+        title: 'Restaurant created successfully!',
         description: `Welcome to ${data.name}. Let's set up your first branch.`,
       });
 
@@ -86,7 +90,7 @@ const RegisterConfirm = () => {
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Error creating brand',
+        title: 'Error creating restaurant',
         description: 'Please try again.',
       });
     } finally {
@@ -106,8 +110,8 @@ const RegisterConfirm = () => {
     <div className="min-h-screen bg-muted/30 py-12 px-4">
       <div className="container max-w-4xl">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-4">Confirm & Create Brand</h1>
-          <p className="text-lg text-muted-foreground">Review your details and set up your restaurant brand</p>
+          <h1 className="text-4xl font-bold mb-4">Confirm & Create Restaurant</h1>
+          <p className="text-lg text-muted-foreground">Review your details and set up your restaurant</p>
         </div>
 
         <div className="grid gap-6">
@@ -163,16 +167,16 @@ const RegisterConfirm = () => {
             </CardContent>
           </Card>
 
-          {/* Brand Setup Form */}
+          {/* Restaurant Setup Form */}
           <Card>
             <CardHeader>
-              <CardTitle>Brand Details</CardTitle>
-              <CardDescription>Create your restaurant brand</CardDescription>
+              <CardTitle>Restaurant Details</CardTitle>
+              <CardDescription>Create your restaurant</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Brand Name *</Label>
+                  <Label htmlFor="name">Restaurant Name *</Label>
                   <Input
                     id="name"
                     {...register('name')}
@@ -184,11 +188,37 @@ const RegisterConfirm = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Brand Description</Label>
+                  <Label htmlFor="email">Restaurant Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    {...register('email')}
+                    placeholder="contact@restaurant.com"
+                  />
+                  {errors.email && (
+                    <p className="text-sm text-destructive">{errors.email.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Restaurant Phone Number</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    {...register('phone')}
+                    placeholder="+1 (555) 123-4567"
+                  />
+                  {errors.phone && (
+                    <p className="text-sm text-destructive">{errors.phone.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">Restaurant Description</Label>
                   <Textarea
                     id="description"
                     {...register('description')}
-                    placeholder="Tell us about your restaurant brand..."
+                    placeholder="Tell us about your restaurant..."
                     rows={3}
                   />
                   {errors.description && (
@@ -207,7 +237,7 @@ const RegisterConfirm = () => {
                     Back
                   </Button>
                   <Button type="submit" className="flex-1" disabled={submitting}>
-                    {submitting ? 'Creating...' : 'Finish & Create Brand'}
+                    {submitting ? 'Creating...' : 'Finish & Create Restaurant'}
                   </Button>
                 </div>
               </form>

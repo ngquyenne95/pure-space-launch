@@ -165,8 +165,19 @@ export const MenuItemDialog = ({
       updateItem(item.id, data);
       toast({ title: 'Menu Item Updated', description: 'Updated successfully.' });
     } else {
-      const newItemId = Date.now().toString();
-      addItem({ ...data, branchId });
+      // Ensure all required fields are present
+      const itemData: Omit<MenuItem, 'id' | 'createdAt' | 'customizations'> = {
+        name: data.name || '',
+        description: data.description || '',
+        price: data.price || 0,
+        category: data.category || '',
+        branchId,
+        available: data.available ?? true,
+        parentCategory: data.parentCategory,
+        isCustomizationCategory: data.isCustomizationCategory,
+        imageUrl: data.imageUrl,
+      };
+      addItem(itemData);
       toast({ title: 'Menu Item Added', description: 'Added successfully.' });
     }
     onOpenChange(false);

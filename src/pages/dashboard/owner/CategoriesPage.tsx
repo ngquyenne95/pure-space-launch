@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Settings } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useMenuStore } from '@/store/menuStore';
-import { useCustomizationStore } from '@/store/customizationStore';
+import { useMenuCustomizationStore } from '@/store/customizationStore';
 import { CategoryManagementDialog } from '@/components/owner/CategoryManagementDialog';
 
 const DEFAULT_CATEGORIES = [
@@ -26,7 +26,7 @@ export default function CategoriesPage() {
   const { user } = useAuthStore();
   const branchId = user?.branchId || '1';
   const { items } = useMenuStore();
-  const { getCategoryCustomizations } = useCustomizationStore();
+  const { getCategoryCustomizations } = useMenuCustomizationStore();
   
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);

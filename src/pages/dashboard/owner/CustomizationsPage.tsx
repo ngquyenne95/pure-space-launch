@@ -4,13 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
-import { useCustomizationStore, Customization } from '@/store/customizationStore';
+import { useMenuCustomizationStore, Customization } from '@/store/customizationStore';
 import { CustomizationManagementDialog } from '@/components/owner/CustomizationManagementDialog';
 
 export default function CustomizationsPage() {
   const { user } = useAuthStore();
   const branchId = user?.branchId || '1';
-  const { getCustomizationsByBranch } = useCustomizationStore();
+  const { getCustomizationsByBranch } = useMenuCustomizationStore();
   
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedCustomization, setSelectedCustomization] = useState<Customization | undefined>();

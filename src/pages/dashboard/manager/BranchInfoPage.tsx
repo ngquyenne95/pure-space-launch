@@ -130,11 +130,14 @@ export default function BranchInfoPage() {
                 <Input
                   id="address"
                   value={address}
-                  onChange={(e) => setAddress(e.target.value)}
+                  disabled
                   placeholder="123 Main Street, City"
-                  className="pl-10"
+                  className="pl-10 bg-muted"
                 />
               </div>
+              <p className="text-xs text-muted-foreground">
+                Address cannot be changed by managers
+              </p>
             </div>
           </div>
 

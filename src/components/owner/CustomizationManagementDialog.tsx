@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useCustomizationStore, Customization } from '@/store/customizationStore';
+import { useMenuCustomizationStore, Customization } from '@/store/customizationStore';
 import { toast } from '@/hooks/use-toast';
 import { Trash2 } from 'lucide-react';
 import {
@@ -36,7 +36,7 @@ export const CustomizationManagementDialog = ({
   branchId,
   customization,
 }: CustomizationManagementDialogProps) => {
-  const { addCustomization, updateCustomization, deleteCustomization } = useCustomizationStore();
+  const { addCustomization, updateCustomization, deleteCustomization } = useMenuCustomizationStore();
   
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');

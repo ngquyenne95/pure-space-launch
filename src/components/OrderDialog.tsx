@@ -42,15 +42,14 @@ export function OrderDialog({ branchId, branchName, selectedItems, onOrderComple
   const total = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const onSubmit = (data: OrderFormData) => {
-    const lineTotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const lineTotal = selectedItems.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
     
     addOrder({
-      branchId,
-      branchName,
-      guestName: data.guestName,
-      guestPhone: data.guestPhone,
+      areaTableId: branchId, // Using branchId as placeholder
+      status: 'pending',
       orderLines: [{
         id: '', // Will be generated
+        orderLineStatus: 'pending',
         items: selectedItems,
         total: lineTotal,
         createdAt: '', // Will be generated

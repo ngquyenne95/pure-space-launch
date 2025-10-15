@@ -134,31 +134,36 @@ export const ManualOrderDialog = ({ open, onOpenChange, branchId }: ManualOrderD
       
       // Add main item
       items.push({
+        id: `item_${Date.now()}_${Math.random()}`,
         menuItemId: menuItem.id,
         name: menuItem.name,
         quantity: line.quantity,
+        totalPrice: menuItem.price * line.quantity,
         price: menuItem.price,
       });
 
       // Add customization items
       line.customizationItems.forEach(({ item, quantity }) => {
         items.push({
+          id: `item_${Date.now()}_${Math.random()}`,
           menuItemId: item.id,
           name: `  + ${item.name}`,
           quantity: quantity,
+          totalPrice: item.price * quantity,
           price: item.price,
         });
       });
     });
 
-    const lineTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const lineTotal = items.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
 
     // Check if there's an active order for this table
-    const existingOrder = getActiveOrderByTable(branchId, selectedTable);
+    const existingOrder = getActiveOrderByTable?.(selectedTable);
 
     if (existingOrder) {
       // Add as a new order line to the existing order
       addOrderLine(existingOrder.id, {
+        orderLineStatus: 'pending',
         items,
         total: lineTotal,
         notes,
@@ -171,13 +176,12 @@ export const ManualOrderDialog = ({ open, onOpenChange, branchId }: ManualOrderD
     } else {
       // Create a new order with the first order line
       addOrder({
-        branchId,
-        branchName: 'Staff Order',
-        guestName: 'Walk-in Customer',
-        guestPhone: 'N/A',
-        tableNumber: selectedTable,
+        areaTableId: selectedTable,
+        tableNumber: typeof selectedTable === 'string' ? parseInt(selectedTable) : selectedTable,
+        status: 'pending',
         orderLines: [{
           id: '', // Will be generated
+          orderLineStatus: 'pending',
           items,
           total: lineTotal,
           createdAt: '', // Will be generated

@@ -75,9 +75,11 @@ export const CustomizationManagementDialog = ({
       });
     } else {
       addCustomization({
+        id: `cust_${Date.now()}`,
         name: name.trim(),
         price: priceValue,
         branchId,
+        options: [],
       });
       toast({
         title: 'Customization added',

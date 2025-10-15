@@ -133,9 +133,11 @@ const GuestLanding = () => {
       setSelectedItems([
         ...selectedItems,
         {
+          id: `item_${Date.now()}_${Math.random()}`,
           menuItemId: item.id,
           name: item.name,
           quantity: 1,
+          totalPrice: item.price,
           price: item.price,
         },
       ]);

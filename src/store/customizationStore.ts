@@ -14,14 +14,22 @@ export interface Customization {
   name: string;
   branchId: string;
   price: number;
-  options: CustomizationOption[];
+  options?: CustomizationOption[];
+  createdAt?: string;
 }
 
 export interface MenuItem {
   id: string;
   name: string;
+  description?: string;
   price: number;
   branchId: string;
+  category?: string;
+  imageUrl?: string;
+  available?: boolean;
+  bestSeller?: boolean;
+  createdAt?: string;
+  customizations?: Customization[];
 }
 
 export interface CategoryCustomization {

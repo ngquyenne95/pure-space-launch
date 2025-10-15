@@ -37,9 +37,9 @@ export function OrderNotification({ branchId }: OrderNotificationProps) {
     return () => window.removeEventListener('storage', handleStorage);
   }, [orders, branchId, getPendingOrders, toast]);
 
-  const handleStatusUpdate = (orderId: string, status: 'preparing' | 'ready' | 'completed' | 'cancelled') => {
-    updateOrderStatus(orderId, status);
-    const statusText = status === 'preparing' ? 'Preparing' : status === 'ready' ? 'Ready' : status === 'completed' ? 'Completed' : 'Cancelled';
+  const handleStatusUpdate = (orderId: string, status: 'preparing' | 'ready' | 'completed') => {
+    updateOrderStatus(orderId, status as any);
+    const statusText = status === 'preparing' ? 'Preparing' : status === 'ready' ? 'Ready' : 'Completed';
     toast({
       title: 'Order Updated',
       description: `Order marked as ${statusText}`,
@@ -128,7 +128,7 @@ export function OrderNotification({ branchId }: OrderNotificationProps) {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleStatusUpdate(order.id, 'cancelled')}
+                        onClick={() => updateOrderStatus(order.id, 'cancelled')}
                       >
                         Decline
                       </Button>

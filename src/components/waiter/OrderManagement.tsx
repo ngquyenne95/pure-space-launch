@@ -28,7 +28,7 @@ export const OrderManagement = () => {
     return orderList.filter(order => {
       const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
       const matchesSearch = !searchQuery || 
-        order.tableNumber?.includes(searchQuery) ||
+        (order.tableNumber && order.tableNumber.toString().includes(searchQuery)) ||
         order.orderLines.some(line => 
           line.items.some(item => item.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
           line.notes?.toLowerCase().includes(searchQuery.toLowerCase())

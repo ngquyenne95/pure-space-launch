@@ -27,19 +27,19 @@ interface TableStatusDialogProps {
 }
 
 export const TableStatusDialog = ({ tableId, open, onOpenChange }: TableStatusDialogProps) => {
-  // ✅ Lấy toàn bộ danh sách tables để tránh tạo object mới mỗi render
-  const tables = useTableStore((state) => state.tables, shallow);
+  // Get tables and reservations
+  const tables = useTableStore((state) => state.tables);
   const updateTable = useTableStore((state) => state.updateTable);
   const addReservation = useReservationStore((state) => state.addReservation);
 
-  // ✅ Dùng useMemo để chỉ tính lại khi tables hoặc tableId thay đổi
+  // Find specific table
   const table = useMemo(
     () => tables.find((t) => t.id === tableId) || null,
     [tables, tableId]
   );
 
-  // ✅ Memo hóa reservations của table
-  const allReservations = useReservationStore((state) => state.reservations, shallow);
+  // Get reservations for this table
+  const allReservations = useReservationStore((state) => state.reservations);
   const reservations = useMemo(
     () => allReservations.filter((r) => r.tableId === tableId),
     [allReservations, tableId]

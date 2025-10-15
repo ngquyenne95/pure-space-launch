@@ -7,8 +7,11 @@ export interface OrderItemCustomization {
   id: string; // order_item_customization_id
   customizationId: string;
   name: string;
+  optionName?: string;
+  customizationName?: string;
   quantity: number;
   totalPrice: number;
+  price?: number; // Alias
 }
 
 export interface OrderItem {
@@ -17,6 +20,7 @@ export interface OrderItem {
   name: string;
   quantity: number;
   totalPrice: number;
+  price?: number; // Alias for totalPrice
   note?: string;
   customizations?: OrderItemCustomization[];
 }
@@ -26,14 +30,22 @@ export interface OrderLine {
   orderLineStatus: 'pending' | 'preparing' | 'ready' | 'completed';
   createdAt: string;
   updatedAt?: string;
+  notes?: string;
+  total?: number;
   items: OrderItem[];
 }
 
 export interface Order {
   id: string; // order_id
   areaTableId: string;
-  status: 'pending' | 'preparing' | 'ready' | 'completed';
+  tableNumber?: number;
+  guestName?: string;
+  status: 'pending' | 'preparing' | 'ready' | 'completed' | 'cancelled';
   totalPrice: number;
+  total?: number; // Alias for totalPrice
+  branchId?: string;
+  billed?: boolean;
+  billedAt?: string;
   createdAt: string;
   updatedAt?: string;
   orderLines: OrderLine[];
@@ -46,6 +58,7 @@ interface OrderState {
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
   getOrdersByTable: (tableId: string) => Order[];
   getPendingOrders: (tableId?: string) => Order[];
+  getActiveOrderByTable?: (tableId: string) => Order | undefined;
   markOrderAsBilled: (orderId: string) => void;
 }
 
@@ -100,6 +113,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
           id: `${Date.now()}-${Math.random().toString(36).substring(2)}`,
           name: menuItem.name,
           totalPrice,
+          price: totalPrice, // Alias
           customizations: mappedCustomizations,
         };
       });
@@ -123,6 +137,8 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       id: Date.now().toString(),
       createdAt: new Date().toISOString(),
       totalPrice,
+      total: totalPrice, // Alias
+      status: orderData.status || 'pending',
       orderLines: mappedLines,
     };
 
@@ -165,6 +181,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
         id: Date.now().toString() + Math.random().toString(36).substring(2),
         name: menuItem.name,
         totalPrice,
+        price: totalPrice, // Alias
         customizations: mappedCustomizations,
       };
     });
@@ -204,11 +221,17 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     get().orders.filter(
       (o) => o.status === 'pending' && (!tableId || o.areaTableId === tableId)
     ),
+  
+  getActiveOrderByTable: (tableId) =>
+    get().orders.find((o) => 
+      o.areaTableId === tableId && 
+      ['pending', 'preparing', 'ready'].includes(o.status)
+    ),
 
   // === 5. MARK AS BILLED ===
   markOrderAsBilled: (orderId: string) => {
     const updated: Order[] = get().orders.map((o) =>
-      o.id === orderId ? { ...o, status: 'completed' } : o
+      o.id === orderId ? { ...o, status: 'completed', billed: true, billedAt: new Date().toISOString() } : o
     );
     saveOrders(updated);
     set({ orders: updated });

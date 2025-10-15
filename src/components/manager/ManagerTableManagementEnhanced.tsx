@@ -120,6 +120,23 @@ export const ManagerTableManagementEnhanced = ({ branchId }: ManagerTableManagem
   return (
     <>
       <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div />
+          <div className="flex gap-2">
+            <Button onClick={() => setIsAreaDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Area
+            </Button>
+            <Button onClick={() => { setInitialTableCount(tables.length); setIsAddTableOpen(true); }}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Table
+            </Button>
+            <Button variant="outline" onClick={() => setIsQRDialogOpen(true)}>
+              <QrCode className="mr-2 h-4 w-4" />
+              Branch QR
+            </Button>
+          </div>
+        </div>
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

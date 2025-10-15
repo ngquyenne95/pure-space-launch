@@ -7,10 +7,13 @@ import { Mail, Phone, MapPin, Calendar, Pencil, Trash2 } from 'lucide-react';
 interface Staff {
   id: string;
   name: string;
-  email: string;
-  phone: string;
+  email?: string;
+  phone?: string;
   role: string;
   status: string;
+  username?: string;
+  branchId?: string;
+  createdAt?: string;
   avatar?: string;
   address?: string;
   joinDate?: string;

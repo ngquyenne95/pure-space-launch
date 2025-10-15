@@ -142,7 +142,7 @@ export const StaffViewDialog = ({
                         {member.branchId && (
                           <div className="flex items-center gap-2">
                             <span className="text-muted-foreground">Branch:</span>
-                            <span className="font-mono">{member.branchId}</span>
+                            <span>{getBranchLabel(member.branchId)}</span>
                           </div>
                         )}
                         {member.createdAt && (

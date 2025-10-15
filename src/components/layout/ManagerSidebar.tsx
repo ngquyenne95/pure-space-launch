@@ -86,9 +86,15 @@ export const ManagerSidebar = () => {
   const handleLogout = () => {
     // If owner is viewing as manager, restore original user
     if (sessionStorage.getItem('owner_viewing_as_manager') === 'true') {
-      const originalUser = sessionStorage.getItem('original_user');
-      if (originalUser) {
-        localStorage.setItem('mock_auth_user', originalUser);
+      const originalUserStr = sessionStorage.getItem('original_user');
+      if (originalUserStr) {
+        localStorage.setItem('mock_auth_user', originalUserStr);
+        try {
+          const originalUser = JSON.parse(originalUserStr);
+          setUser(originalUser);
+        } catch (e) {
+          // Fallback: ensure at least auth store reloads from storage next mount
+        }
       }
       sessionStorage.removeItem('owner_viewing_as_manager');
       sessionStorage.removeItem('manager_branch_id');
@@ -97,7 +103,7 @@ export const ManagerSidebar = () => {
       navigate('/dashboard/owner');
       return;
     }
-    
+
     logout();
     navigate('/login');
   };

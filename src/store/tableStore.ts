@@ -3,6 +3,16 @@ import { useMemo } from 'react';
 
 export type TableStatus = 'available' | 'occupied' | 'out_of_service';
 
+export interface Branch {
+  branch_id: string;
+  restaurant_id: string;
+  address: string;
+  branch_phone?: string;
+  opening_time?: string;
+  closing_time?: string;
+  is_active?: boolean;
+  mail?: string;
+}
 export interface Table {
   id: string;
   branchId: string;
@@ -19,6 +29,8 @@ export interface Table {
 
 interface TableState {
   tables: Table[];
+  branches: Branch[];
+
   addTable: (table: Omit<Table, 'id' | 'qrCode' | 'createdAt'>) => void;
   updateTable: (id: string, updates: Partial<Table>) => void;
   updateTableStatus: (id: string, status: TableStatus) => void;
@@ -26,9 +38,21 @@ interface TableState {
   getTablesByBranch: (branchId: string) => Table[];
   getTablesByBranchAndFloor: (branchId: string) => Map<number, Table[]>;
   getTableById: (id: string) => Table | undefined;
+  getBranches: () => Branch[];
+  setBranches: (branches: Branch[]) => void;
 }
 
 const STORAGE_KEY = 'tables';
+const BRANCHES_STORAGE_KEY = 'branches';
+
+const loadBranches = (): Branch[] => {
+  const stored = localStorage.getItem(BRANCHES_STORAGE_KEY);
+  return stored ? JSON.parse(stored) : [];
+};
+
+const saveBranches = (branches: Branch[]) => {
+  localStorage.setItem(BRANCHES_STORAGE_KEY, JSON.stringify(branches));
+};
 
 const loadTables = (): Table[] => {
   const stored = localStorage.getItem(STORAGE_KEY);
@@ -49,6 +73,7 @@ export const useTableStore = create<TableState>((set, get) => {
 
   return {
     tables: loadTables(),
+    branches: loadBranches(),
 
     addTable: (table) => {
       const newTable: Table = {
@@ -109,5 +134,8 @@ export const useTableStore = create<TableState>((set, get) => {
     getTableById: (id) => {
       return get().tables.find((table) => table.id === id);
     },
+
+    getBranches: () => get().branches,
+    setBranches: (branches) => set({ branches }),
   };
 });

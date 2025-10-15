@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Mail, Phone, UserCog } from 'lucide-react';
+import { Plus, Eye, Trash2, Mail, Phone, UserCog } from 'lucide-react';
 import { useStaffStore, StaffMember } from '@/store/staffStore';
 import { OwnerStaffDialog } from './OwnerStaffDialog';
 import { toast } from '@/hooks/use-toast';
@@ -16,15 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface OwnerStaffManagementProps {
   branchId: string;
@@ -35,19 +27,25 @@ export const OwnerStaffManagement = ({ branchId }: OwnerStaffManagementProps) =>
   const allStaff = useStaffStore((state) => state.staff);
   const managers = allStaff.filter(s => s.role === 'manager' && s.branchId === branchId);
   const deleteStaff = useStaffStore((state) => state.deleteStaff);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedStaff, setSelectedStaff] = useState<StaffMember | undefined>();
-  const [staffToDelete, setStaffToDelete] = useState<string | null>(null);
-  const [showBranchSelect, setShowBranchSelect] = useState(false);
-  const [selectedBranchForManager, setSelectedBranchForManager] = useState('');
 
-  const handleEdit = (member: StaffMember) => {
+  // Dialog states
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [dialogMode, setDialogMode] = useState<'create' | 'view'>('create');
+  const [selectedStaff, setSelectedStaff] = useState<StaffMember | undefined>();
+
+  const [staffToDelete, setStaffToDelete] = useState<string | null>(null);
+
+  // View manager details (read-only)
+  const handleView = (member: StaffMember) => {
     setSelectedStaff(member);
+    setDialogMode('view');
     setIsDialogOpen(true);
   };
 
+  // Add new manager
   const handleAdd = () => {
     setSelectedStaff(undefined);
+    setDialogMode('create');
     setIsDialogOpen(true);
   };
 
@@ -61,64 +59,45 @@ export const OwnerStaffManagement = ({ branchId }: OwnerStaffManagementProps) =>
   };
 
   const handleAccessManagerDashboard = () => {
-    setShowBranchSelect(true);
-  };
+    // Get all branches for the current branch info
+    const allBranches = JSON.parse(localStorage.getItem('mock_branches') || '[]');
+    const selectedBranch = allBranches.find((b: any) => b.id === branchId);
 
-  const handleBranchSelection = () => {
-    if (!selectedBranchForManager) {
-      toast({
-        variant: 'destructive',
-        title: 'Select a branch',
-        description: 'Please select a branch to continue.',
-      });
-      return;
-    }
-
-    // Get the selected branch details
-    const selectedBranch = allBranches.find((b: any) => b.id === selectedBranchForManager);
-    
     if (!selectedBranch) {
       toast({
         variant: 'destructive',
         title: 'Branch not found',
-        description: 'The selected branch could not be found.',
+        description: 'The current branch could not be found.',
       });
       return;
     }
 
     // Store manager context
     sessionStorage.setItem('owner_viewing_as_manager', 'true');
-    sessionStorage.setItem('manager_branch_id', selectedBranchForManager);
+    sessionStorage.setItem('manager_branch_id', branchId);
     sessionStorage.setItem('manager_branch_name', selectedBranch.name);
-    
+
     // Create a temporary manager user context
     const user = JSON.parse(localStorage.getItem('mock_auth_user') || '{}');
     const originalUser = { ...user };
     sessionStorage.setItem('original_user', JSON.stringify(originalUser));
-    
-    user.branchId = selectedBranchForManager;
+
+    user.branchId = branchId;
     user.role = 'branch_manager';
     localStorage.setItem('mock_auth_user', JSON.stringify(user));
-    
-    setShowBranchSelect(false);
-    
+
     // Use window.location to force a full page reload with the new user context
     window.location.href = '/dashboard/manager';
   };
 
-  // Get all branches for selection
+  // Get current branch info
   const allBranches = JSON.parse(localStorage.getItem('mock_branches') || '[]');
   const currentBranch = allBranches.find((b: any) => b.id === branchId);
 
   return (
     <>
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold">Staff Management</h2>
-          <p className="text-muted-foreground">
-            Managing staff for: {currentBranch?.name}
-          </p>
-        </div>
+        {/* Access Manager Dashboard Card */}
         <Card className="bg-primary/5 border-primary/20">
           <CardContent className="pt-6">
             <div className="flex items-start gap-4">
@@ -127,8 +106,10 @@ export const OwnerStaffManagement = ({ branchId }: OwnerStaffManagementProps) =>
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-lg mb-1">Access Manager Dashboard</h3>
+                <p className="text-sm text-muted-foreground mb-2">
+                  View and manage operations for <span className="font-semibold text-foreground">{currentBranch?.name || 'this branch'}</span> from the manager's perspective.
+                </p>
                 <p className="text-sm text-muted-foreground mb-4">
-                  View and manage your branch operations from the manager's perspective. 
                   You can create waiter and receptionist accounts there.
                 </p>
                 <Button onClick={handleAccessManagerDashboard} variant="default">
@@ -140,6 +121,7 @@ export const OwnerStaffManagement = ({ branchId }: OwnerStaffManagementProps) =>
           </CardContent>
         </Card>
 
+        {/* Manager Accounts Card */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -156,19 +138,23 @@ export const OwnerStaffManagement = ({ branchId }: OwnerStaffManagementProps) =>
           <CardContent>
             {managers.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-muted-foreground">No managers yet. Add your first manager!</p>
+                <div className="inline-block p-4 rounded-full bg-muted mb-4">
+                  <UserCog className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <p className="text-muted-foreground text-lg">No managers yet</p>
+                <p className="text-sm text-muted-foreground mt-2">Add your first manager to get started!</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {managers.map((member) => (
-                  <Card key={member.id} className="border-border/50">
+                  <Card key={member.id} className="border-border/50 hover:shadow-md transition-shadow">
                     <CardContent className="pt-6">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
                             <h4 className="font-bold text-lg">{member.name}</h4>
                             <Badge variant={member.status === 'active' ? 'default' : 'secondary'}>
-                              {member.status}
+                              {member.status.charAt(0).toUpperCase() + member.status.slice(1)}
                             </Badge>
                             <Badge variant="outline">Manager</Badge>
                           </div>
@@ -189,13 +175,21 @@ export const OwnerStaffManagement = ({ branchId }: OwnerStaffManagementProps) =>
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <Button size="icon" variant="ghost" onClick={() => handleEdit(member)}>
-                            <Edit className="h-4 w-4" />
+                          {/* View Button (Read-only) */}
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => handleView(member)}
+                            title="View Details"
+                          >
+                            <Eye className="h-4 w-4" />
                           </Button>
+                          {/* Delete Button */}
                           <Button
                             size="icon"
                             variant="ghost"
                             onClick={() => setStaffToDelete(member.id)}
+                            title="Delete Manager"
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
@@ -210,67 +204,36 @@ export const OwnerStaffManagement = ({ branchId }: OwnerStaffManagementProps) =>
         </Card>
       </div>
 
+      {/* Staff Dialog with mode support */}
       <OwnerStaffDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         branchId={branchId}
         staff={selectedStaff}
+        mode={dialogMode}
       />
 
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!staffToDelete} onOpenChange={() => setStaffToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Manager</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete this manager? This action cannot be undone.
+              The manager will lose access to the system immediately.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => staffToDelete && handleDelete(staffToDelete)}>
+            <AlertDialogAction
+              onClick={() => staffToDelete && handleDelete(staffToDelete)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <Dialog open={showBranchSelect} onOpenChange={setShowBranchSelect}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Select Branch</DialogTitle>
-            <DialogDescription>
-              Choose which branch to manage as a manager
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Branch</label>
-              <Select value={selectedBranchForManager} onValueChange={setSelectedBranchForManager}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a branch" />
-                </SelectTrigger>
-                <SelectContent>
-                  {allBranches.map((branch: any) => (
-                    <SelectItem key={branch.id} value={branch.id}>
-                      {branch.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex gap-2 justify-end pt-4">
-              <Button variant="outline" onClick={() => setShowBranchSelect(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleBranchSelection}>
-                Continue to Manager Dashboard
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   );
 };

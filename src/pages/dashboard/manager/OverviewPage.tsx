@@ -109,7 +109,7 @@ export default function OverviewPage() {
                 <CardDescription>Current table availability by floor</CardDescription>
               </div>
               <div className="flex items-center gap-3">
-              <Select value={selectedAreaId} onValueChange={setSelectedAreaId}>
+              {/* <Select value={selectedAreaId} onValueChange={setSelectedAreaId}>
                 <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Select area" />
                 </SelectTrigger>
@@ -121,7 +121,7 @@ export default function OverviewPage() {
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+              </Select> */}
 
               <Select value={selectedFloor} onValueChange={setSelectedFloor}>
                 <SelectTrigger className="w-[180px]">

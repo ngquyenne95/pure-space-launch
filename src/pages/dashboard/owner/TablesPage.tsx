@@ -58,7 +58,7 @@ const OwnerTablesPage = () => {
     return null;
   }
 
-  return <TableManagementReadOnlyByFloor branchId={activeBranch.id} />;
+  return <TableManagementReadOnlyByFloor allowBranchSelection={true} />;
 };
 
 export default OwnerTablesPage;

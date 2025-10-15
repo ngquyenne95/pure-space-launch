@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Table2, Eye, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Table2, Eye, Settings, ChevronLeft, ChevronRight, Plus, QrCode } from 'lucide-react';
 import { useTableStore, TableStatus } from '@/store/tableStore';
 import { useAreaStore } from '@/store/areaStore';
 import { useReservationStore } from '@/store/reservationStore';

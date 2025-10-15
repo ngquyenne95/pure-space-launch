@@ -425,6 +425,82 @@ export const ManagerTableManagementEnhanced = ({ branchId }: ManagerTableManagem
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Add Table Dialog (reusing owner TableDialog) */}
+      <TableDialog
+        open={isAddTableOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            const allTables = useTableStore.getState().getTablesByBranch(branchId);
+            if (allTables.length > initialTableCount) {
+              const latest = allTables.reduce((a, b) => (a.id > b.id ? a : b));
+              setQrTable(latest);
+              setIsQRDialogOpen(true);
+            }
+          }
+          setIsAddTableOpen(open);
+        }}
+        branchId={branchId}
+      />
+
+      {/* Table QR Dialog */}
+      <TableQRDialog
+        open={isQRDialogOpen && !!qrTable}
+        onOpenChange={(open) => {
+          setIsQRDialogOpen(open);
+          if (!open) setQrTable(null);
+        }}
+        table={qrTable}
+      />
+
+      {/* Add Area Dialog */}
+      <Dialog open={isAreaDialogOpen} onOpenChange={setIsAreaDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Area</DialogTitle>
+            <DialogDescription>Create a new area/floor for this branch</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="areaName">Area Name</Label>
+              <Input id="areaName" value={areaName} onChange={(e) => setAreaName(e.target.value)} placeholder="e.g. Patio" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="areaFloor">Floor Number</Label>
+              <Input id="areaFloor" type="number" min={1} value={areaFloor} onChange={(e) => setAreaFloor(parseInt(e.target.value || '1', 10))} />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setIsAreaDialogOpen(false)}>Cancel</Button>
+              <Button onClick={() => {
+                if (!areaFloor) return;
+                useAreaStore.getState().addArea({ branchId, name: areaName || `Area ${areaFloor}`, floor: areaFloor, status: 'active' });
+                toast({ title: 'Area added', description: 'New area has been created.' });
+                setAreaName('');
+                setAreaFloor(1);
+                setIsAreaDialogOpen(false);
+              }}>Add Area</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Branch QR Dialog */}
+      <Dialog open={isQRDialogOpen && !qrTable} onOpenChange={(open) => setIsQRDialogOpen(open)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Branch QR Code</DialogTitle>
+            <DialogDescription>Scan to open the branch page</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-4">
+            <div className="bg-white p-6 rounded-lg border-2 border-border">
+              <QRCodeSVG value={`${window.location.origin}/branch/${branchShortCode}`} size={200} />
+            </div>
+            <div className="text-sm font-mono select-all break-all">
+              {`${window.location.origin}/branch/${branchShortCode}`}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

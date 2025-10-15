@@ -113,14 +113,40 @@ export const StaffViewDialog = ({
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Mail className="h-4 w-4" />
-                          <span>{member.email}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Phone className="h-4 w-4" />
-                          <span>{member.phone}</span>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                        {member.email && (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Mail className="h-4 w-4" />
+                            <span>{member.email}</span>
+                          </div>
+                        )}
+                        {member.phone && (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Phone className="h-4 w-4" />
+                            <span>{member.phone}</span>
+                          </div>
+                        )}
+                        {member.username && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">Username:</span>
+                            <span className="font-mono">{member.username}</span>
+                          </div>
+                        )}
+                        {member.branchId && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">Branch:</span>
+                            <span className="font-mono">{member.branchId}</span>
+                          </div>
+                        )}
+                        {member.createdAt && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">Created:</span>
+                            <span>{new Date(member.createdAt).toLocaleString()}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">ID:</span>
+                          <span className="font-mono">{member.id}</span>
                         </div>
                         {member.address && (
                           <div className="flex items-center gap-2 text-muted-foreground">

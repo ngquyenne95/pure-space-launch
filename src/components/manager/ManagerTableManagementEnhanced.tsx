@@ -8,6 +8,7 @@ import { useAreaStore } from '@/store/areaStore';
 import { useReservationStore } from '@/store/reservationStore';
 import { toast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,

@@ -331,7 +331,7 @@ export const ManagerTableManagementEnhanced = ({ branchId }: ManagerTableManagem
                   <p className="text-sm text-muted-foreground mb-2">QR Code URL</p>
                   <div className="flex gap-2">
                     <Input 
-                      value={`${window.location.origin}/menu/${selectedTable.branchId}/${selectedTable.id}`}
+                      value={`${window.location.origin}/branch/${branchShortCode}/table/${selectedTable.id}`}
                       readOnly
                       className="font-mono text-xs"
                     />
@@ -339,7 +339,7 @@ export const ManagerTableManagementEnhanced = ({ branchId }: ManagerTableManagem
                       size="sm"
                       variant="outline"
                       onClick={() => {
-                        navigator.clipboard.writeText(`${window.location.origin}/menu/${selectedTable.branchId}/${selectedTable.id}`);
+                        navigator.clipboard.writeText(`${window.location.origin}/branch/${branchShortCode}/table/${selectedTable.id}`);
                         toast({ title: 'Copied!', description: 'URL copied to clipboard' });
                       }}
                     >

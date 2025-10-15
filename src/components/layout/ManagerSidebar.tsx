@@ -71,7 +71,7 @@ const menuItems = [
 
 export const ManagerSidebar = () => {
   const location = useLocation();
-  const { user, logout } = useAuthStore();
+  const { user, logout, setUser } = useAuthStore();
   const navigate = useNavigate();
   const [isOwnerView, setIsOwnerView] = React.useState(false);
   const [branchName, setBranchName] = React.useState('');

@@ -27,13 +27,20 @@ interface StaffViewDialogProps {
   onDelete?: (staffId: string) => void;
 }
 
-export const StaffViewDialog = ({ 
-  open, 
-  onOpenChange, 
+export const StaffViewDialog = ({
+  open,
+  onOpenChange,
   staff,
   onEdit,
   onDelete
 }: StaffViewDialogProps) => {
+  const branches = JSON.parse(localStorage.getItem('mock_branches') || '[]');
+  const getBranchLabel = (branchId?: string) => {
+    if (!branchId) return '';
+    const b = branches.find((br: any) => br.id === branchId);
+    if (!b) return branchId;
+    return b.shortCode ? `${b.name} (${b.shortCode})` : b.name;
+  };
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
       case 'waiter':

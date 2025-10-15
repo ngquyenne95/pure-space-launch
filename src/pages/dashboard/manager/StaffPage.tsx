@@ -2,11 +2,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, Plus, Edit, Trash2 } from 'lucide-react';
+import { Users, Plus, Eye, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useStaffStore } from '@/store/staffStore';
 import { StaffManagementDialog } from '@/components/manager/StaffManagementDialog';
+import { StaffViewDialog } from '@/components/manager/StaffViewDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +36,8 @@ export default function StaffPage() {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [addStaffDialogOpen, setAddStaffDialogOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [viewStaffList, setViewStaffList] = useState<Staff[]>([]);
   const [staffToDelete, setStaffToDelete] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const { user } = useAuthStore();
@@ -188,9 +191,9 @@ export default function StaffPage() {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => handleEditStaff(member)}>
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
+                      <Button size="sm" variant="outline" onClick={() => { setViewStaffList([member]); setViewDialogOpen(true); }}>
+                        <Eye className="h-4 w-4 mr-1" />
+                        View
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => setStaffToDelete(member.id)}>
                         <Trash2 className="h-4 w-4 mr-1 text-destructive" />
@@ -246,9 +249,16 @@ export default function StaffPage() {
       <StaffManagementDialog
         open={addStaffDialogOpen}
         onOpenChange={setAddStaffDialogOpen}
-        staff={editingStaff}
+        staff={null}
         branchId={user?.branchId || ''}
         onSuccess={handleStaffSaved}
+      />
+
+      <StaffViewDialog
+        open={viewDialogOpen}
+        onOpenChange={setViewDialogOpen}
+        staff={viewStaffList}
+        onDelete={(id) => { setStaffToDelete(id); setViewDialogOpen(false); }}
       />
 
       <AlertDialog open={!!staffToDelete} onOpenChange={() => setStaffToDelete(null)}>

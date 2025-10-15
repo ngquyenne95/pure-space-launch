@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ChefHat, Star, AlertTriangle } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from '@/hooks/use-toast';
+import { getMenuItems } from '@/lib/syncData';
 import {
   Select,
   SelectContent,
@@ -35,26 +36,15 @@ export default function MenuPage() {
   }, [user]);
 
   const loadMenuItems = () => {
-    const storedMenu = localStorage.getItem('mock_menu');
-    const allMenu: MenuItem[] = storedMenu ? JSON.parse(storedMenu) : [];
-    
-    // Filter by branch
-    const branchMenu = allMenu.filter(item => item.branchId === user?.branchId);
-    setMenuItems(branchMenu);
+    const allMenu: any[] = getMenuItems(user?.branchId);
+    setMenuItems(allMenu as MenuItem[]);
   };
 
   const toggleBestSeller = (itemId: string) => {
-    const storedMenu = localStorage.getItem('mock_menu');
-    const allMenu: MenuItem[] = storedMenu ? JSON.parse(storedMenu) : [];
-    
-    const updatedMenu = allMenu.map(item => {
-      if (item.id === itemId) {
-        return { ...item, bestSeller: !item.bestSeller };
-      }
-      return item;
-    });
-    
-    localStorage.setItem('mock_menu', JSON.stringify(updatedMenu));
+    const allMenu: MenuItem[] = getMenuItems();
+    const updatedMenu = allMenu.map(item => item.id === itemId ? { ...item, bestSeller: !item.bestSeller } : item);
+    localStorage.setItem('menu_items', JSON.stringify(updatedMenu));
+    localStorage.setItem('mock_menu_items', JSON.stringify(updatedMenu));
     loadMenuItems();
     
     const item = updatedMenu.find(i => i.id === itemId);
@@ -65,17 +55,10 @@ export default function MenuPage() {
   };
 
   const toggleAvailability = (itemId: string) => {
-    const storedMenu = localStorage.getItem('mock_menu');
-    const allMenu: MenuItem[] = storedMenu ? JSON.parse(storedMenu) : [];
-    
-    const updatedMenu = allMenu.map(item => {
-      if (item.id === itemId) {
-        return { ...item, available: item.available === false ? true : false };
-      }
-      return item;
-    });
-    
-    localStorage.setItem('mock_menu', JSON.stringify(updatedMenu));
+    const allMenu: MenuItem[] = getMenuItems();
+    const updatedMenu = allMenu.map(item => item.id === itemId ? { ...item, available: item.available === false ? true : false } : item);
+    localStorage.setItem('menu_items', JSON.stringify(updatedMenu));
+    localStorage.setItem('mock_menu_items', JSON.stringify(updatedMenu));
     loadMenuItems();
     
     const item = updatedMenu.find(i => i.id === itemId);

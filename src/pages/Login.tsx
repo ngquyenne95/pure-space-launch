@@ -5,13 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuthStore } from '@/store/authStore';
-import { UtensilsCrossed, Mail, Lock } from 'lucide-react';
+import { UtensilsCrossed, Mail, Lock, Sparkles, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
   const { toast } = useToast();
@@ -82,71 +84,161 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center gradient-hero p-4">
-      <Card className="w-full max-w-md shadow-large">
-        <CardHeader className="space-y-4 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl gradient-primary">
-            <UtensilsCrossed className="h-8 w-8 text-primary-foreground" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 p-4 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 -left-48 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-1/4 -right-48 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-float-delayed" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-primary/3 via-purple-500/3 to-pink-500/3 rounded-full blur-3xl animate-pulse-slow" />
+      </div>
+
+      <Card className="w-full max-w-md shadow-2xl backdrop-blur-xl bg-card/95 border-2 relative z-10 animate-scale-in">
+        {/* Decorative top border */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-purple-500 to-pink-500 rounded-t-lg" />
+        
+        <CardHeader className="space-y-4 text-center relative">
+          {/* Animated logo container */}
+          <div className="mx-auto relative group">
+            {/* Glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary to-purple-600 rounded-xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-500 animate-pulse" />
+            
+            {/* Logo */}
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-purple-600 transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 animate-bounce-in">
+              <UtensilsCrossed className="h-8 w-8 text-primary-foreground" />
+              <div className="absolute -top-1 -right-1">
+                <Sparkles className="h-4 w-4 text-yellow-400 animate-pulse" />
+              </div>
+            </div>
           </div>
-          <div>
-            <CardTitle className="text-2xl">Welcome Back</CardTitle>
-            <CardDescription className="text-base">Sign in to your HillDevilOS account</CardDescription>
+
+          <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Welcome Back
+            </CardTitle>
+            <CardDescription className="text-base">
+              Sign in to your <span className="font-semibold text-primary">HillDevilOS</span> account
+            </CardDescription>
           </div>
         </CardHeader>
+
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email Field */}
+            <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+              <Label htmlFor="email" className="text-sm font-medium">
+                Email Address
+              </Label>
+              <div className="relative group">
+                <Mail className={cn(
+                  "absolute left-3 top-3 h-4 w-4 transition-all duration-300",
+                  focusedField === 'email' ? "text-primary scale-110" : "text-muted-foreground"
+                )} />
                 <Input
                   id="email"
                   type="email"
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
+                  onFocus={() => setFocusedField('email')}
+                  onBlur={() => setFocusedField(null)}
+                  className={cn(
+                    "pl-10 transition-all duration-300 h-11",
+                    focusedField === 'email' && "ring-2 ring-primary/20 border-primary"
+                  )}
                   required
                 />
+                {/* Animated bottom border */}
+                <div className={cn(
+                  "absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-primary via-purple-500 to-pink-500 transition-all duration-300",
+                  focusedField === 'email' ? "w-full" : "w-0"
+                )} />
               </div>
             </div>
             
-            <div className="space-y-2">
+            {/* Password Field */}
+            <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link to="/forgot-password" className="text-sm text-primary hover:underline">
+                <Label htmlFor="password" className="text-sm font-medium">
+                  Password
+                </Label>
+                <Link 
+                  to="/forgot-password" 
+                  className="text-sm text-primary hover:underline transition-all hover:translate-x-0.5 inline-flex items-center gap-1 group"
+                >
                   Forgot password?
+                  <ChevronRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
                 </Link>
               </div>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <div className="relative group">
+                <Lock className={cn(
+                  "absolute left-3 top-3 h-4 w-4 transition-all duration-300",
+                  focusedField === 'password' ? "text-primary scale-110" : "text-muted-foreground"
+                )} />
                 <Input
                   id="password"
                   type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10"
+                  onFocus={() => setFocusedField('password')}
+                  onBlur={() => setFocusedField(null)}
+                  className={cn(
+                    "pl-10 transition-all duration-300 h-11",
+                    focusedField === 'password' && "ring-2 ring-primary/20 border-primary"
+                  )}
                   required
                 />
+                {/* Animated bottom border */}
+                <div className={cn(
+                  "absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-primary via-purple-500 to-pink-500 transition-all duration-300",
+                  focusedField === 'password' ? "w-full" : "w-0"
+                )} />
               </div>
             </div>
 
-            <Button type="submit" className="w-full" variant="hero" disabled={isLoading}>
-              {isLoading ? 'Signing in...' : 'Sign In'}
+            {/* Sign In Button */}
+            <Button 
+              type="submit" 
+              className="w-full h-11 bg-gradient-to-r from-primary via-purple-600 to-primary bg-size-200 bg-pos-0 hover:bg-pos-100 transition-all duration-500 relative group overflow-hidden animate-fade-in-up"
+              style={{ animationDelay: '400ms' }}
+              disabled={isLoading}
+            >
+              {/* Button glow effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
+              
+              <span className="relative z-10 font-semibold">
+                {isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="animate-spin h-4 w-4 border-2 border-white/30 border-t-white rounded-full" />
+                    Signing in...
+                  </span>
+                ) : (
+                  'Sign In'
+                )}
+              </span>
             </Button>
 
-            <div className="relative">
+            {/* Divider */}
+            <div className="relative animate-fade-in-up" style={{ animationDelay: '500ms' }}>
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
+                <span className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
               </div>
             </div>
 
-            <Button type="button" variant="outline" className="w-full" disabled={isLoading}>
-              <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+            {/* Google Sign In */}
+            <Button 
+              type="button" 
+              variant="outline" 
+              className="w-full h-11 hover:bg-accent hover:border-primary/50 transition-all duration-300 group relative overflow-hidden animate-fade-in-up"
+              style={{ animationDelay: '600ms' }}
+              disabled={isLoading}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              
+              <svg className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" viewBox="0 0 24 24">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                   fill="#4285F4"
@@ -164,30 +256,150 @@ const Login = () => {
                   fill="#EA4335"
                 />
               </svg>
-              Sign in with Google
+              <span className="relative z-10">Sign in with Google</span>
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-muted-foreground">
+          {/* Sign Up Link */}
+          <p className="mt-6 text-center text-sm text-muted-foreground animate-fade-in-up" style={{ animationDelay: '700ms' }}>
             Don't have an account?{' '}
-            <Link to="/register" className="text-primary font-medium hover:underline">
+            <Link to="/register" className="text-primary font-medium hover:underline inline-flex items-center gap-1 group transition-all">
               Sign up
+              <ChevronRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
             </Link>
           </p>
 
-          <div className="mt-6 text-center space-y-2">
-            <span className="text-sm text-muted-foreground">Are you Staff or Manager?</span>
+          {/* Staff Login */}
+          <div className="mt-6 text-center space-y-3 animate-fade-in-up" style={{ animationDelay: '800ms' }}>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-dashed border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">Staff Access</span>
+              </div>
+            </div>
+            
             <Button
               type="button"
               variant="secondary"
-              className="w-full"
+              className="w-full h-11 bg-secondary/50 hover:bg-secondary transition-all duration-300 group relative overflow-hidden"
               onClick={() => navigate('/restaurant-login')}
             >
-              Restaurant Staff Login
+              <div className="absolute inset-0 bg-gradient-to-r from-secondary to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <span className="relative z-10 flex items-center gap-2">
+                Restaurant Staff Login
+                <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </span>
             </Button>
           </div>
         </CardContent>
       </Card>
+
+      <style>{`
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0) rotate(0deg);
+          }
+          50% {
+            transform: translateY(-20px) rotate(5deg);
+          }
+        }
+
+        @keyframes float-delayed {
+          0%, 100% {
+            transform: translateY(0) rotate(0deg);
+          }
+          50% {
+            transform: translateY(20px) rotate(-5deg);
+          }
+        }
+
+        @keyframes scale-in {
+          from {
+            opacity: 0;
+            transform: scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        @keyframes fade-in-up {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes bounce-in {
+          0% {
+            opacity: 0;
+            transform: scale(0.3);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1.05);
+          }
+          70% {
+            transform: scale(0.9);
+          }
+          100% {
+            transform: scale(1);
+          }
+        }
+
+        @keyframes pulse-slow {
+          0%, 100% {
+            opacity: 0.3;
+          }
+          50% {
+            opacity: 0.5;
+          }
+        }
+
+        .animate-float {
+          animation: float 20s ease-in-out infinite;
+        }
+
+        .animate-float-delayed {
+          animation: float-delayed 25s ease-in-out infinite;
+        }
+
+        .animate-scale-in {
+          animation: scale-in 0.5s ease-out forwards;
+        }
+
+        .animate-fade-in-up {
+          animation: fade-in-up 0.6s ease-out forwards;
+          opacity: 0;
+        }
+
+        .animate-bounce-in {
+          animation: bounce-in 0.8s ease-out forwards;
+        }
+
+        .animate-pulse-slow {
+          animation: pulse-slow 4s ease-in-out infinite;
+        }
+
+        .bg-size-200 {
+          background-size: 200% auto;
+        }
+
+        .bg-pos-0 {
+          background-position: 0% center;
+        }
+
+        .bg-pos-100 {
+          background-position: 100% center;
+        }
+      `}</style>
     </div>
   );
 };

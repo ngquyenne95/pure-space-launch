@@ -272,15 +272,29 @@ export const ManagerTableManagementEnhanced = ({ branchId }: ManagerTableManagem
                                       </SelectContent>
                                     </Select>
                                     
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => handleViewDetails(table)}
-                                      className="w-full"
-                                    >
-                                      <Eye className="mr-2 h-3 w-3" />
-                                      View Details
-                                    </Button>
+                                    <div className="flex gap-2">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleViewDetails(table)}
+                                        className="flex-1"
+                                      >
+                                        <Eye className="mr-2 h-3 w-3" />
+                                        Details
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                          setQrTable(table);
+                                          setIsQRDialogOpen(true);
+                                        }}
+                                        className="flex-1"
+                                      >
+                                        <QrCode className="mr-2 h-3 w-3" />
+                                        QR
+                                      </Button>
+                                    </div>
                                   </div>
                                 </div>
                               </CardContent>
@@ -501,6 +515,22 @@ export const ManagerTableManagementEnhanced = ({ branchId }: ManagerTableManagem
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Table QR Dialog */}
+      <TableQRDialog
+        open={isQRDialogOpen && !!qrTable}
+        onOpenChange={(open) => {
+          setIsQRDialogOpen(open);
+          if (!open) setQrTable(null);
+        }}
+        table={qrTable}
+      />
+
+      <TableDialog
+        open={isAddTableOpen}
+        onOpenChange={setIsAddTableOpen}
+        branchId={branchId}
+      />
     </>
   );
 };

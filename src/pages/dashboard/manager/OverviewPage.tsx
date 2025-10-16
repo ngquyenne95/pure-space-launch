@@ -123,15 +123,15 @@ export default function OverviewPage() {
                 </SelectContent>
               </Select> */}
 
-              <Select value={selectedFloor} onValueChange={setSelectedFloor}>
+              <Select value={selectedAreaId} onValueChange={setSelectedAreaId}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select floor" />
+                  <SelectValue placeholder="Select area" />
                 </SelectTrigger>
                 <SelectContent className="bg-background">
-                  <SelectItem value="all">All Floors</SelectItem>
-                  {floors.map((floor) => (
-                    <SelectItem key={floor} value={floor.toString()}>
-                      Floor {floor}
+                  <SelectItem value="all">All Areas</SelectItem>
+                  {branchAreas.map((area) => (
+                    <SelectItem key={area.id} value={area.id}>
+                      {area.name || `Area ${area.floor}`}
                     </SelectItem>
                   ))}
                 </SelectContent>

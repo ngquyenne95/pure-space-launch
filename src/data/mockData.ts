@@ -2,16 +2,16 @@
 import { MenuItem, Customization } from '../store/customizationStore';
 // Menu items with branchId linking
 export const mockCustomizations: Customization[] = [
-  { id: 'c1', branchId: '1', name: 'Extra Cheese - Cheddar', price: 1.5, createdAt: new Date().toISOString() },
-  { id: 'c2', branchId: '1', name: 'Extra Cheese - Swiss', price: 1.5, createdAt: new Date().toISOString() },
-  { id: 'c3', branchId: '1', name: 'Extra Cheese - Blue Cheese', price: 2, createdAt: new Date().toISOString() },
-  { id: 'c4', branchId: '1', name: 'Add Bacon', price: 2.5, createdAt: new Date().toISOString() },
-  { id: 'c5', branchId: '1', name: 'Add Avocado', price: 2, createdAt: new Date().toISOString() },
-  { id: 'c6', branchId: '1', name: 'Add Fried Egg', price: 1.5, createdAt: new Date().toISOString() },
-  { id: 'c7', branchId: '1', name: 'Milk Tea Sweetness 0%', price: 0, createdAt: new Date().toISOString() },
-  { id: 'c8', branchId: '1', name: 'Milk Tea Sweetness 25%', price: 0, createdAt: new Date().toISOString() },
-  { id: 'c9', branchId: '1', name: 'Milk Tea Toppings - Pearls', price: 0.75, createdAt: new Date().toISOString() },
-  { id: 'c10', branchId: '1', name: 'Milk Tea Toppings - Pudding', price: 0.75, createdAt: new Date().toISOString() },
+  { id: 'c1', branchId: '1', name: 'Extra Cheese - Cheddar', price: 1.5, options: [], createdAt: new Date().toISOString() },
+  { id: 'c2', branchId: '1', name: 'Extra Cheese - Swiss', price: 1.5, options: [], createdAt: new Date().toISOString() },
+  { id: 'c3', branchId: '1', name: 'Extra Cheese - Blue Cheese', price: 2, options: [], createdAt: new Date().toISOString() },
+  { id: 'c4', branchId: '1', name: 'Add Bacon', price: 2.5, options: [], createdAt: new Date().toISOString() },
+  { id: 'c5', branchId: '1', name: 'Add Avocado', price: 2, options: [], createdAt: new Date().toISOString() },
+  { id: 'c6', branchId: '1', name: 'Add Fried Egg', price: 1.5, options: [], createdAt: new Date().toISOString() },
+  { id: 'c7', branchId: '1', name: 'Milk Tea Sweetness 0%', price: 0, options: [], createdAt: new Date().toISOString() },
+  { id: 'c8', branchId: '1', name: 'Milk Tea Sweetness 25%', price: 0, options: [], createdAt: new Date().toISOString() },
+  { id: 'c9', branchId: '1', name: 'Milk Tea Toppings - Pearls', price: 0.75, options: [], createdAt: new Date().toISOString() },
+  { id: 'c10', branchId: '1', name: 'Milk Tea Toppings - Pudding', price: 0.75, options: [], createdAt: new Date().toISOString() },
 ];
 
 export const mockMenuItems: MenuItem[] = [

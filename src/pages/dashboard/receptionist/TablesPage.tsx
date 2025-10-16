@@ -82,7 +82,7 @@ const TablesPage = () => {
             <div key={floor} className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="bg-primary/10 rounded-lg px-4 py-2">
-                  <h3 className="text-lg font-semibold text-primary">Floor {floor}</h3>
+                  <h3 className="text-lg font-semibold text-primary">Area {floor}</h3>
                 </div>
                 <div className="flex-1 h-px bg-border" />
                 <span className="text-sm text-muted-foreground">

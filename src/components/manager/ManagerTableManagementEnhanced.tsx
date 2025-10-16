@@ -200,7 +200,7 @@ export const ManagerTableManagementEnhanced = ({ branchId }: ManagerTableManagem
                     )}>
                       <div className="flex items-center gap-3">
                         <div className="bg-primary/10 rounded-lg px-4 py-2 flex items-center gap-3">
-                          <h3 className="text-lg font-semibold text-primary">Area {floor}</h3>
+                          <h3 className="text-lg font-semibold text-primary">{area?.name || `Area ${floor}`}</h3>
                           {area && (
                             <Select 
                               value={area.status} 

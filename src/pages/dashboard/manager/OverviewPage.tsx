@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 export default function OverviewPage() {
   const { user } = useAuthStore();
   const branchId = user?.branchId || '1';
+  
   const activeBranch = mockBranches.find(b => b.id === branchId) || mockBranches[0];
   const { getStaffByBranch } = useStaffStore();
   const { getAreasByBranch } = useAreaStore();

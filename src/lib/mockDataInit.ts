@@ -80,14 +80,14 @@ export const initializeMockData = () => {
     localStorage.setItem('reservations', JSON.stringify([]));
   }
   
-  // Initialize areas if not present
-  if (!localStorage.getItem('areas')) {
-    const defaultAreas = [
-      { id: 'area-1', branchId: '1', name: 'Main Dining', floor: 1, status: 'active', createdAt: new Date().toISOString() },
-      { id: 'area-2', branchId: '1', name: 'VIP Section', floor: 2, status: 'active', createdAt: new Date().toISOString() },
-    ];
-    localStorage.setItem('areas', JSON.stringify(defaultAreas));
-  }
+  // Always initialize areas to ensure consistency
+  const defaultAreas = [
+    { id: 'area-1', branchId: '1', name: 'Main Dining', floor: 1, status: 'active', createdAt: new Date().toISOString() },
+    { id: 'area-2', branchId: '1', name: 'VIP Section', floor: 2, status: 'active', createdAt: new Date().toISOString() },
+    { id: 'area-3', branchId: '2', name: 'Ground Floor', floor: 1, status: 'active', createdAt: new Date().toISOString() },
+    { id: 'area-4', branchId: '2', name: 'Upper Level', floor: 2, status: 'active', createdAt: new Date().toISOString() },
+  ];
+  localStorage.setItem('areas', JSON.stringify(defaultAreas));
 };
 
 // Get data for a specific branch
